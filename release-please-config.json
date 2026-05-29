@@ -5,6 +5,7 @@
       "release-type": "node",
       "package-name": "federated-collection-discovery",
       "changelog-path": "CHANGELOG.md",
+      "include-component-in-tag": false,
       "include-v-in-tag": true
     }
   }

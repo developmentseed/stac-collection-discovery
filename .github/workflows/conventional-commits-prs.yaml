@@ -1,0 +1,31 @@
+name: Conventional PR title
+
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - reopened
+      - synchronize
+
+permissions:
+  pull-requests: read
+
+jobs:
+  validate-title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate pull request title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          pattern='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|test)(\([[:alnum:]_.\/-]+\))?(!)?: .+'
+
+          if [[ "$PR_TITLE" =~ $pattern ]]; then
+            exit 0
+          fi
+
+          echo "PR title must follow Conventional Commits."
+          echo "Examples: feat(search): add map filters, fix(ci): use node-version-file"
+          echo "Found: $PR_TITLE"
+          exit 1

@@ -2,229 +2,168 @@
 
 <img
     src="src/assets/logo.svg"
-    alt="federated collection discovery logo is a modified version of the
-    proposed Fediverse logo but with a geographic theme"
+    alt="Federated Collection Discovery logo"
     width="200"
 />
 
 A React application for searching multiple STAC APIs simultaneously.
-Built with [STAC FastAPI Collection Discovery API](http://developmentseed.org/stac-fastapi-collection-discovery/),
+Built with the
+[STAC FastAPI Collection Discovery API](http://developmentseed.org/stac-fastapi-collection-discovery/),
 this tool performs federated collection searches across multiple STAC API
 endpoints at once.
-Configure which STAC APIs to query, view comprehensive collection metadata,
-and get item-search code hints—all from a single unified interface.
 
 ## Features
 
-- **Simultaneous Multi-API Search**: Search multiple STAC APIs at once
-  for comprehensive results across all configured endpoints
-- **Interactive Collection Details**: Comprehensive modal with collection
-  metadata, spatial/temporal extents, providers, and links
-- **Code Generation**: Client-generated STAC item search examples in Python and
-  R with dynamic values
-- **Pagination Support**: Load more results with STAC-compliant pagination
-  using `rel=next` links
-- **API Management**: Configure, add, remove, and monitor STAC API endpoints
-  with health diagnostics
-- **Conformance Checking**: Automatic detection of STAC API capabilities
-  (collection search, free-text search)
-- **Client-Side Filtering**: Configurable per-API filtering for deployment
-  customization
-- **Responsive Design**: Mobile-friendly interface with sorting and filtering
-  capabilities
-- **Visual Mapping**: Interactive maps showing spatial extents for collections
-- **Health Monitoring**: Real-time API health status with detailed conformance
-  and capability information
+- Simultaneous multi-API search across configured STAC endpoints
+- Interactive collection details with spatial and temporal context
+- Client-generated code hints for item search workflows
+- API health diagnostics and capability detection
+- Configurable per-API filtering for deployment-specific behavior
+- Responsive interface with sorting, filtering, and pagination
 
 ## Table of Contents
 
-- [Features](#features)
 - [Development](#development)
-- [Running with Docker](#running-with-docker)
-- [Running in local environment](#running-in-local-environment)
+- [Docker development](#docker-development)
 - [Configuration](#configuration)
+- [Releases and contribution workflow](#releases-and-contribution-workflow)
 - [Usage](#usage)
 
 ## Development
 
-### Installation
+### Requirements
+
+- Node 22 LTS
+- Yarn 1
+
+The repo standardizes on the Node version declared in [`.nvmrc`](.nvmrc).
+If you use `nvm`, run:
+
+```bash
+nvm use
+```
+
+### Install dependencies
 
 ```bash
 yarn install
 ```
 
-### Testing
+### Run the app locally
 
-TODO: write tests for client app
+Local development is frontend-first. By default, point the app at a deployed API:
 
-## Running with Docker
+```bash
+VITE_API_URL=https://discover-api.dit.maap-project.org yarn dev
+```
 
-For development and testing, a Docker setup is provided that includes both
-the client application and an optional backend service for advanced use cases.
+Then open `http://localhost:3000`.
 
-Build and start the services:
+### Local checks
+
+Run the same checks used in CI:
+
+```bash
+yarn format:check
+yarn typecheck
+yarn build
+```
+
+## Docker development
+
+Docker is also frontend-first and targets a deployed API by default. The repo-root `Dockerfile` is the container entry point for local app development.
 
 ```bash
 docker compose up --build
 ```
 
-This will start:
+The app will be available at `http://localhost:3000`.
 
-- **Client application**: `http://localhost:3000`
-- **Backend service (STAC API)**: `http://localhost:8000`
+To point Docker development at a different backend:
 
-Stop the services:
+```bash
+VITE_API_URL=https://your-api.example.com docker compose up --build
+```
+
+Stop the stack with:
 
 ```bash
 docker compose down
 ```
 
-## Running in local environment
-
-### Option 1: Client-Only
-
-Start the development server (pointed at a deployed backend API):
-
-```bash
-yarn install
-VITE_API_URL=https://discover-api.dit.maap-project.org yarn dev
-```
-
-Access the application at `http://localhost:3000`
-
-### Option 2: With Optional Backend Service
-
-If you want to run the STAC Collection Discovery API locally during development:
-
-1. Install Python dependencies:
-
-```bash
-uv sync
-```
-
-1. Start the backend service:
-
-```bash
-uv run uvicorn stac_fastapi.collection_discovery.app:app \
-  --host 0.0.0.0 --port 8000 --reload
-```
-
-1. Start the React development server:
-
-```bash
-yarn dev
-```
-
-Access:
-
-- **Client application**: `http://localhost:3000`
-- **Backend service**: `http://localhost:8000`
-
 ## Configuration
 
-### API Configuration
+### Environment variable
 
-The application searches multiple STAC API endpoints simultaneously.
-Configure which STAC APIs to query:
+- `VITE_API_URL`: URL for the STAC FastAPI Collection Discovery API
 
-#### Environment Variables
-
-- `VITE_API_URL`: URL to the STAC FastAPI Collection Discovery API
-
-#### Runtime Configuration
+### Runtime API configuration
 
 Use the **Settings** button in the API Configuration panel to:
 
-- **Add/Remove APIs**: Configure which STAC API endpoints to search simultaneously
-- **Health Monitoring**: View real-time health status and conformance
-  information for each API
-- **Capability Detection**: See which APIs support collection search and
-  free-text search
-- **Default APIs**: Reset to the APIs configured in config.ts
+- Add or remove STAC API endpoints
+- Review health status and diagnostics
+- Inspect supported capabilities such as collection search and free-text search
+- Reset to the default API list from `src/config.ts`
 
-#### Default STAC APIs Configuration
+### Default API list
 
-The default STAC APIs that the application queries are configured in
-`/src/config.ts` in the `DEFAULT_API_CONFIGURATIONS` array.
-Edit this file to specify which STAC APIs should be available by default
-and optionally add custom filter functions:
+The default STAC APIs are configured in `src/config.ts` via
+`DEFAULT_API_CONFIGURATIONS`.
 
-```typescript
-export const DEFAULT_API_CONFIGURATIONS: ApiConfiguration[] = [
-  {
-    url: "https://your-stac-api.example.com/",
-    // Optional: Filter collections by license
-    filter: (collection) => {
-      const license = collection.license;
-      return license && license.toLowerCase().includes("cc");
-    },
-  },
-];
-```
+## Releases and contribution workflow
 
-Available filter examples:
+Releases are managed by Release Please.
+On pushes to `main`, GitHub Actions updates or opens a release PR based on
+conventional commits.
+Merging that release PR updates `CHANGELOG.md`, tags the release, and creates
+its GitHub Release.
 
-- License-based filtering
-- Provider-based filtering
-- Date-based filtering (e.g., only recent collections)
-- Spatial resolution filtering
-- Keyword-based filtering
+### Commit messages
+
+Local commits are checked with Commitlint.
+Use Conventional Commits such as:
+
+- `feat(search): add API health badges`
+- `fix(ci): read node version from .nvmrc`
+- `docs(readme): clarify local API configuration`
+
+### Pull request titles
+
+PR titles must also follow Conventional Commits because squash merges turn the
+PR title into the final commit message that Release Please reads.
+
+### Tag format
+
+Historical releases used bare tags like `2.2.0`.
+New automated releases use `v`-prefixed tags such as `v2.2.1`.
+
+### When a release PR does not appear
+
+Check these first:
+
+1. The merged commits on `main` use conventional commit types.
+2. The `Release Please` workflow ran successfully.
+3. There is not already an open release PR waiting to be merged.
+4. The release baseline files (`package.json`, `CHANGELOG.md`, and
+   `.release-please-manifest.json`) still agree.
 
 ## Usage
 
-### API Configuration & Health
+### Configure APIs
 
-1. **Configure APIs**: Click the **Settings** button in the API Configuration
-   panel
-2. **Health Status**: Monitor the status indicator (green=healthy, red=issues,
-   orange=limited functionality)
-3. **Diagnostics**: Use the Diagnostics tab to see detailed API health and
-   conformance information
+1. Open the **Settings** panel.
+2. Add, remove, or enable the STAC APIs you want to search.
+3. Review diagnostics if an endpoint is degraded or unsupported.
 
-### Search Collections
+### Search collections
 
-1. **Basic Search**: Enter search parameters in the left panel:
-   - **Bounding Box**: Define spatial area of interest using the map or
-     coordinates
-   - **Date Range**: Specify temporal coverage with date pickers
-   - **Free Text**: Add keywords or collection names (if supported by
-     configured APIs)
+1. Enter a bounding box, date range, or free-text query.
+2. Review aggregated results from the configured APIs.
+3. Open **Details** for metadata, links, spatial coverage, and generated code
+   hints.
 
-2. **View Results**: Collections appear in the right panel table with:
-   - Sortable columns (title, ID, API source)
-   - Click "Details" button for comprehensive collection information
-   - Results from all configured STAC APIs are aggregated and displayed together
+### Pagination
 
-### Collection Details Modal
-
-The comprehensive collection details modal provides:
-
-- **Core Information**: Collection ID, source API, title, and description
-- **Spatial/Temporal Extents**: Interactive maps showing collection coverage
-  and formatted date ranges
-- **Providers**: Enhanced display with roles, descriptions, and contact links
-- **Code Generation**: Ready-to-use Python and R examples for STAC item
-  searches with your specific search parameters
-- **Collapsible Sections**:
-  - **Links**: All collection relationships and associated resources
-  - **Raw JSON**: Complete collection metadata for developers
-
-### Pagination & Results
-
-- **Progressive Loading**: Results are loaded from the Collection Discovery API
-- **Load More**: When available, a "Load More" button appears to fetch
-  additional results from the backend
-- **Pagination Support**: The backend handles pagination across multiple STAC
-  APIs seamlessly
-- **Result Persistence**: New results are appended without losing your current
-  position
-
-### Advanced Features
-
-- **Conformance Checking**: Backend performs automatic detection of STAC API capabilities
-- **Error Handling**: Backend provides graceful handling of API outages with
-  partial results from healthy endpoints
-- **Client-Side Filtering**: Apply custom filters per API based on
-  deployment-specific requirements configured in config.ts
-- **Responsive Design**: Full functionality on desktop, tablet, and mobile
-  devices
+- Use **Load More** when additional results are available.
+- Results are appended without clearing the current list.

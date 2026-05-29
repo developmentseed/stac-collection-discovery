@@ -33,7 +33,7 @@ endpoints at once.
 
 ### Requirements
 
-- Node 22 LTS
+- Node 24.15.0
 - Yarn 1
 
 The repo standardizes on the Node version declared in [`.nvmrc`](.nvmrc).

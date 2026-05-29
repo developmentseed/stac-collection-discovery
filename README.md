@@ -51,8 +51,6 @@ yarn install
 
 ### Run the app locally
 
-Local development is frontend-first. By default, point the app at a deployed API:
-
 ```bash
 VITE_API_URL=https://discover-api.dit.maap-project.org yarn dev
 ```
@@ -66,12 +64,27 @@ Run the same checks used in CI:
 ```bash
 yarn format:check
 yarn typecheck
+yarn test:run
 yarn build
+```
+
+### Tests
+
+Run tests in watch mode during development:
+
+```bash
+yarn test
+```
+
+Run the full test suite once:
+
+```bash
+yarn test:run
 ```
 
 ## Docker development
 
-Docker is also frontend-first and targets a deployed API by default. The repo-root `Dockerfile` is the container entry point for local app development.
+You can also run the app in a docker network
 
 ```bash
 docker compose up --build

@@ -29,14 +29,12 @@
     "react-day-picker": "^10.0.1",
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",
-    "source-map-explorer": "^2.5.3",
     "styled-components": "^6.4.2",
     "tailwind-merge": "^3.6.0",
     "typescript": "^5.9.3"
   },
   "scripts": {
     "dev": "vite",
-    "analyze": "source-map-explorer 'build/static/js/*.js'",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
@@ -59,7 +57,6 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
-    "depcheck": "^1.4.7",
     "husky": ">=6",
     "jsdom": "^29.1.1",
     "lint-staged": ">=17",
@@ -69,6 +66,10 @@
     "tailwindcss": "^4.1.14",
     "vite": "^8.0.14",
     "vitest": "^4.1.7"
+  },
+  "resolutions": {
+    "@unhead/vue": "2.1.15",
+    "unhead": "2.1.15"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,css,md,json}": "prettier --write"

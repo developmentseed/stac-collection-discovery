@@ -53,7 +53,7 @@ export function DatePicker({
             setOpen(false);
           }}
           disabled={maxDate ? { after: maxDate } : undefined}
-          initialFocus
+          autoFocus
         />
       </PopoverContent>
     </Popover>

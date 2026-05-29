@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  frontend:
+  tests:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -32,6 +32,9 @@ jobs:
 
       - name: Type-check application
         run: yarn typecheck
+
+      - name: Run tests
+        run: yarn test:run
 
       - name: Build client application
         run: yarn build

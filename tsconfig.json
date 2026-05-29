@@ -27,8 +27,8 @@
       "@/*": ["./src/*"]
     },
 
-    /* Vite types */
-    "types": ["vite/client"]
+    /* Vite and test types */
+    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"]
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]

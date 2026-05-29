@@ -104,7 +104,7 @@ const extractCatalogUrl = (collection: Record<string, any>): string => {
   return "N/A";
 };
 
-const formatProviders = (providers: any[]): JSX.Element => {
+const formatProviders = (providers: any[]): React.JSX.Element => {
   if (!Array.isArray(providers) || providers.length === 0) {
     return <p className="text-sm">No providers</p>;
   }

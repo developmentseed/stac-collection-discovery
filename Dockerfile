@@ -1,5 +1,5 @@
 # Development image for the React application
-FROM node:22.22.1
+FROM node:24.15.0
 
 WORKDIR /app
 

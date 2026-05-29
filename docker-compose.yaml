@@ -1,21 +1,8 @@
 services:
-  server:
-    build:
-      dockerfile: ./docker/Dockerfile.server
-    container_name: federated-collection-discovery-server
-    ports:
-      - "8000:8000"
-    develop:
-      watch:
-        - action: rebuild
-          path: ./pyproject.toml
-    environment:
-      - PORT=8000
-      - UPSTREAM_API_URLS=https://stac.maap-project.org/,https://staging.openveda.cloud/api/stac/
   client:
     build:
-      dockerfile: ./docker/Dockerfile.client
       context: .
+      dockerfile: ./Dockerfile
     container_name: federated-collection-discovery-client
     ports:
       - "3000:3000"
@@ -24,9 +11,8 @@ services:
       - node_modules:/app/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=${VITE_API_URL:-https://discover-api.dit.maap-project.org}
       - DOCKER_CONTAINER=true
-    depends_on:
-      - server
+
 volumes:
   node_modules:

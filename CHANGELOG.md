@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - Nothing yet.
 
+## [2.3.0](https://github.com/developmentseed/federated-collection-discovery/compare/federated-collection-discovery-v2.2.0...federated-collection-discovery-v2.3.0) (2026-05-29)
+
+
+### Features
+
+* ApiConfigPanel usability improvements ([#130](https://github.com/developmentseed/federated-collection-discovery/issues/130)) ([09acaf1](https://github.com/developmentseed/federated-collection-discovery/commit/09acaf1235795b6686407c2d0b7da580b6b8e4c4))
+* handle upstream api failures reported via X-Failed-Upstream-Apis ([#183](https://github.com/developmentseed/federated-collection-discovery/issues/183)) ([0b301f3](https://github.com/developmentseed/federated-collection-discovery/commit/0b301f3bd4bbb036414f0b447e06f62b090ceb98))
+* switch to OpenLayers and ol-stac ([#111](https://github.com/developmentseed/federated-collection-discovery/issues/111)) ([98a9ef0](https://github.com/developmentseed/federated-collection-discovery/commit/98a9ef0bcd0e6dd01e939a9952b0be608b29b327))
+
+
+### Bug Fixes
+
+* concatenate search terms with AND (if no search operators are used) ([#119](https://github.com/developmentseed/federated-collection-discovery/issues/119)) ([8fc83a3](https://github.com/developmentseed/federated-collection-discovery/commit/8fc83a300778b81f243dc7c2fc06e9c555df342b))
+* use scalar for api docs ([#123](https://github.com/developmentseed/federated-collection-discovery/issues/123)) ([55770af](https://github.com/developmentseed/federated-collection-discovery/commit/55770af86d99aa3356e540abd2d3b629c3e4a06d))
+
 ## 2.2.0
 
 ### Historical

@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    container_name: federated-collection-discovery-client
+    container_name: stac-collection-discovery-client
     ports:
       - "3000:3000"
     volumes:

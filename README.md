@@ -1,8 +1,8 @@
-# Federated Collection Discovery
+# STAC Collection Discovery
 
 <img
     src="src/assets/logo.svg"
-    alt="Federated Collection Discovery logo"
+    alt="STAC Collection Discovery logo"
     width="200"
 />
 

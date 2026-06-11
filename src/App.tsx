@@ -455,7 +455,7 @@ export const App = () => {
               className={cn(touchTarget(), "flex-1 sm:flex-initial")}
             >
               <a
-                href="https://github.com/developmentseed/federated-collection-discovery"
+                href="https://github.com/developmentseed/stac-collection-discovery"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(hstack({ gap: "sm" }), "justify-center")}

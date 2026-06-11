@@ -125,7 +125,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - Display all bounding boxes from a collection's spatial extent in the details
-  map [#27](https://github.com/developmentseed/federated-collection-discovery/pull/27).
+  map [#27](https://github.com/developmentseed/stac-collection-discovery/pull/27).
 - Improve the format of temporal range in collection details.
 
 ## 0.1.5
@@ -134,9 +134,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - Replace STAC collection filter code with
   `pystac_client.Client.collection_search`
-  [#26](https://github.com/developmentseed/federated-collection-discovery/pull/26).
+  [#26](https://github.com/developmentseed/stac-collection-discovery/pull/26).
 - Migrate from Poetry to uv
-  [#26](https://github.com/developmentseed/federated-collection-discovery/pull/26).
+  [#26](https://github.com/developmentseed/stac-collection-discovery/pull/26).
 - Upgrade to `httpx==0.27.2`.
 
 ## 0.1.4
@@ -168,7 +168,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Make the client application responsive to window size.
 - Implement free-text search as defined by the
   [Free-Text STAC API extension](https://github.com/stac-api-extensions/freetext-search)
-  ([#14](https://github.com/developmentseed/federated-collection-discovery/pull/1)).
+  ([#14](https://github.com/developmentseed/stac-collection-discovery/pull/1)).
 - Run `check_health` asynchronously.
 
 ## 0.1.0
@@ -176,10 +176,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 
 - Ability to crawl through the STAC API `/collections` endpoint
-  [#1](https://github.com/developmentseed/federated-collection-discovery/pull/1).
+  [#1](https://github.com/developmentseed/stac-collection-discovery/pull/1).
 - Ability to search the CMR API
-  [#1](https://github.com/developmentseed/federated-collection-discovery/pull/1).
+  [#1](https://github.com/developmentseed/stac-collection-discovery/pull/1).
 - Rudimentary client application
-  [#3](https://github.com/developmentseed/federated-collection-discovery/pull/3).
+  [#3](https://github.com/developmentseed/stac-collection-discovery/pull/3).
 - Concurrent API queries
-  [#9](https://github.com/developmentseed/federated-collection-discovery/pull/9).
+  [#9](https://github.com/developmentseed/stac-collection-discovery/pull/9).

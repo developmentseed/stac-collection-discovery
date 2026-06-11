@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - Nothing yet.
 
+## [2.2.1](https://github.com/developmentseed/stac-collection-discovery/compare/2.2.0...v2.2.1) (2026-06-11)
+
+
+### Bug Fixes
+
+* make name consistent across logo, text elements ([#203](https://github.com/developmentseed/stac-collection-discovery/issues/203)) ([04d1317](https://github.com/developmentseed/stac-collection-discovery/commit/04d1317a9dbc32cf5f03ca076c20ffb589ed9a37))
+
 ## 2.2.0
 
 ### Historical

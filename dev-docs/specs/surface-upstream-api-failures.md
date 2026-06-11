@@ -14,7 +14,7 @@ backend no longer aborts the entire request. Instead it:
 - Adds a `X-Failed-Upstream-Apis` response header containing a
   comma-separated list of failed API URLs
 
-This federated collection discovery frontend currently has no knowledge of this
+This STAC collection discovery frontend currently has no knowledge of this
 header. Users may see fewer results than expected with no explanation when an
 upstream API is down. This spec describes the minimal frontend changes needed
 to read the new header and inform users when partial failures occur.

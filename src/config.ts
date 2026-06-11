@@ -1,7 +1,7 @@
 /**
  * APPLICATION CONFIGURATION
  *
- * This file contains all configurable settings for the federated collection discovery application.
+ * This file contains all configurable settings for the STAC collection discovery application.
  * Modify the values below to customize your deployment.
  */
 

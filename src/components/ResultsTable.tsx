@@ -48,6 +48,8 @@ import {
   Check,
   ExternalLink,
   Columns3,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { cn } from "@/utils/utils";
 import { stack, hstack, touchTarget, dialog } from "@/utils/responsive";
@@ -209,14 +211,20 @@ interface ColumnDef {
   key: string;
   label: string;
   alwaysVisible?: boolean;
+  width: string;
 }
 
 const COLUMN_DEFS: ColumnDef[] = [
-  { key: "title", label: "Title", alwaysVisible: true },
-  { key: "id", label: "id" },
-  { key: "dateRange", label: "Date Range" },
-  { key: "api", label: "API" },
-  { key: "actions", label: "Actions", alwaysVisible: true },
+  { key: "title", label: "Title", alwaysVisible: true, width: "w-64 max-w-64" },
+  { key: "id", label: "id", width: "w-48 max-w-48" },
+  { key: "dateRange", label: "Date Range", width: "w-56 max-w-56" },
+  { key: "api", label: "API", width: "w-56 max-w-56" },
+  {
+    key: "actions",
+    label: "Actions",
+    alwaysVisible: true,
+    width: "w-36 max-w-36",
+  },
 ];
 
 const getFirstIntervalDate = (
@@ -324,66 +332,70 @@ const ResultsTable: React.FC<Props> = ({
   };
 
   return (
-    <div className={stack({ gap: "sm" })}>
-      {failedApis.length > 0 && (
-        <Alert variant="default">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            The following API{failedApis.length > 1 ? "s" : ""} did not respond
-            and results may be incomplete:
-            <ul className="mt-1 list-disc list-inside">
-              {failedApis.map((api) => (
-                <li key={api} className="break-all">
-                  {api}
-                </li>
-              ))}
-            </ul>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {data.length > 0 && (
-        <div className="flex items-center justify-between gap-2">
-          <p
-            className="text-sm text-muted-foreground"
-            role="status"
-            aria-live="polite"
-          >
-            {data.length} {data.length === 1 ? "result" : "results"}
-          </p>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Columns3 className="h-4 w-4" aria-hidden="true" />
-                Columns
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent align="end" className="w-56">
-              <div className={stack({ gap: "sm" })}>
-                {COLUMN_DEFS.filter((col) => !col.alwaysVisible).map((col) => (
-                  <label
-                    key={col.key}
-                    className={cn(hstack({ gap: "sm" }), "text-sm")}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={!hiddenColumns.has(col.key)}
-                      onChange={() => toggleColumn(col.key)}
-                    />
-                    {col.label}
-                  </label>
+    <div className={cn(stack({ gap: "sm" }), "h-full min-h-0")}>
+      <div className={cn(stack({ gap: "sm" }), "flex-none")}>
+        {failedApis.length > 0 && (
+          <Alert variant="warning">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              The following API{failedApis.length > 1 ? "s" : ""} did not
+              respond and results may be incomplete:
+              <ul className="mt-1 list-disc list-inside">
+                {failedApis.map((api) => (
+                  <li key={api} className="break-all">
+                    {api}
+                  </li>
                 ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-      )}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
 
-      <div className="w-full rounded-lg border bg-card overflow-hidden">
+        {data.length > 0 && (
+          <div className="flex items-center justify-between gap-2">
+            <p
+              className="text-sm text-foreground"
+              role="status"
+              aria-live="polite"
+            >
+              {data.length} {data.length === 1 ? "result" : "results"}
+            </p>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Columns3 className="h-4 w-4" aria-hidden="true" />
+                  Columns
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-56">
+                <div className={stack({ gap: "sm" })}>
+                  {COLUMN_DEFS.filter((col) => !col.alwaysVisible).map(
+                    (col) => (
+                      <label
+                        key={col.key}
+                        className={cn(hstack({ gap: "sm" }), "text-sm")}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={!hiddenColumns.has(col.key)}
+                          onChange={() => toggleColumn(col.key)}
+                        />
+                        {col.label}
+                      </label>
+                    )
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
+      </div>
+
+      <div className="w-full flex-1 min-h-0 flex flex-col rounded-lg border bg-card overflow-hidden">
         {data.length === 0 ? (
           !hasSearched ? (
             <div
-              className="flex flex-col items-center justify-center p-16 text-center"
+              className="flex-1 min-h-0 overflow-auto flex flex-col items-center justify-center p-16 text-center"
               role="status"
             >
               <img
@@ -410,7 +422,7 @@ const ResultsTable: React.FC<Props> = ({
             </div>
           ) : (
             <div
-              className="flex flex-col items-center justify-center p-16 text-center"
+              className="flex-1 min-h-0 overflow-auto flex flex-col items-center justify-center p-16 text-center"
               role="status"
             >
               <img
@@ -433,158 +445,176 @@ const ResultsTable: React.FC<Props> = ({
             </div>
           )
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {visibleColumns.map((col) => (
-                    <TableHead
-                      key={col.key}
-                      className={cn(
-                        "sticky top-0 z-10 bg-background py-2 px-3 font-semibold border-b border-border whitespace-nowrap",
-                        col.key !== "actions" && "cursor-pointer",
-                        col.key === "title" &&
-                          "left-0 z-20 w-64 max-w-64 border-r shadow-[2px_0_4px_-2px_rgba(0,0,0,0.15)]"
-                      )}
-                      onClick={
-                        col.key !== "actions"
-                          ? () => handleSort(col.key)
-                          : undefined
+          <Table containerClassName="flex-1 min-h-0 h-full overflow-auto">
+            <TableHeader>
+              <TableRow>
+                {visibleColumns.map((col) => (
+                  <TableHead
+                    key={col.key}
+                    className={cn(
+                      "group sticky top-0 z-10 bg-background py-2 px-3 font-semibold border-b border-border whitespace-nowrap",
+                      col.width,
+                      col.key !== "actions" && "cursor-pointer hover:bg-muted",
+                      col.key === "actions" && "text-center",
+                      col.key === "title" &&
+                        "left-0 z-20 border-r shadow-[2px_0_4px_-2px_rgba(0,0,0,0.15)]"
+                    )}
+                    onClick={
+                      col.key !== "actions"
+                        ? () => handleSort(col.key)
+                        : undefined
+                    }
+                    role="columnheader"
+                    aria-sort={
+                      sortColumn === col.key
+                        ? sortOrder === "asc"
+                          ? "ascending"
+                          : "descending"
+                        : "none"
+                    }
+                    tabIndex={col.key !== "actions" ? 0 : undefined}
+                    onKeyDown={(e) => {
+                      if (
+                        col.key !== "actions" &&
+                        (e.key === "Enter" || e.key === " ")
+                      ) {
+                        e.preventDefault();
+                        handleSort(col.key);
                       }
-                      role="columnheader"
-                      aria-sort={
-                        sortColumn === col.key
-                          ? sortOrder === "asc"
-                            ? "ascending"
-                            : "descending"
-                          : "none"
-                      }
-                      tabIndex={col.key !== "actions" ? 0 : undefined}
-                      onKeyDown={(e) => {
-                        if (
-                          col.key !== "actions" &&
-                          (e.key === "Enter" || e.key === " ")
-                        ) {
-                          e.preventDefault();
-                          handleSort(col.key);
-                        }
-                      }}
-                    >
-                      {col.key === "actions" ? (
-                        <span className="sr-only">{col.label}</span>
-                      ) : (
-                        <div className="flex items-center gap-1">
-                          {col.label}
-                          {sortColumn === col.key && (
-                            <span className="text-xs" aria-hidden="true">
-                              {sortOrder === "asc" ? "↑" : "↓"}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortedData.map((row, rowIndex) => {
-                  const rowKey = row.id || String(rowIndex);
-                  const rowBg = rowIndex % 2 === 1 ? "bg-muted/20" : "bg-card";
-                  return (
-                    <TableRow
-                      key={rowKey}
-                      onClick={() => handleButtonClick(row)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          handleButtonClick(row);
-                        }
-                      }}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`View details for ${row.title || "Untitled"}`}
-                      className={cn(
-                        "cursor-pointer transition-colors duration-150 hover:bg-muted/50",
-                        rowIndex % 2 === 1 && "bg-muted/20"
-                      )}
-                    >
-                      {visibleColumns.map((col) => (
-                        <TableCell
-                          key={col.key}
-                          className={cn(
-                            "py-2 px-3 whitespace-nowrap",
-                            col.key === "title" &&
-                              cn(
-                                "sticky left-0 z-[1] w-64 max-w-64 truncate border-r shadow-[2px_0_4px_-2px_rgba(0,0,0,0.15)]",
-                                rowBg
-                              )
-                          )}
-                        >
-                          {col.key === "actions" ? (
-                            <div
-                              className={hstack({ gap: "xs" })}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() => handleButtonClick(row)}
-                                aria-label={`View details for ${row.title || "Untitled"}`}
-                              >
-                                <Info className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() => handleCopy(row, rowKey)}
-                                aria-label={`Copy raw JSON for ${row.title || "Untitled"}`}
-                              >
-                                {copiedId === rowKey ? (
-                                  <Check className="h-4 w-4" />
-                                ) : (
-                                  <Copy className="h-4 w-4" />
-                                )}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() =>
-                                  window.open(
-                                    extractCatalogUrl(row),
-                                    "_blank",
-                                    "noopener,noreferrer"
-                                  )
-                                }
-                                aria-label={`Open API link for ${row.title || "Untitled"}`}
-                              >
-                                <ExternalLink className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ) : col.key === "title" ? (
-                            <span className="font-medium">
-                              {renderCell(col.key, row)}
-                            </span>
+                    }}
+                  >
+                    {col.key === "actions" ? (
+                      <span className="sr-only">{col.label}</span>
+                    ) : (
+                      <div className="flex items-center gap-1">
+                        {col.label}
+                        {sortColumn === col.key ? (
+                          sortOrder === "asc" ? (
+                            <ArrowUp
+                              className="h-3.5 w-3.5 shrink-0"
+                              aria-hidden="true"
+                            />
                           ) : (
-                            <span className="text-sm">
-                              {renderCell(col.key, row)}
-                            </span>
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
+                            <ArrowDown
+                              className="h-3.5 w-3.5 shrink-0"
+                              aria-hidden="true"
+                            />
+                          )
+                        ) : (
+                          <ArrowUp
+                            className="h-3.5 w-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-50"
+                            aria-hidden="true"
+                          />
+                        )}
+                      </div>
+                    )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedData.map((row, rowIndex) => {
+                const rowKey = row.id || String(rowIndex);
+                const rowBg = rowIndex % 2 === 1 ? "bg-row-stripe" : "bg-card";
+                return (
+                  <TableRow
+                    key={rowKey}
+                    onClick={() => handleButtonClick(row)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleButtonClick(row);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`View details for ${row.title || "Untitled"}`}
+                    className={cn(
+                      "group cursor-pointer transition-colors duration-150 hover:bg-row-hover",
+                      rowIndex % 2 === 1 && "bg-row-stripe"
+                    )}
+                  >
+                    {visibleColumns.map((col) => (
+                      <TableCell
+                        key={col.key}
+                        className={cn(
+                          "py-2 px-3 whitespace-nowrap",
+                          col.width,
+                          col.key !== "actions" && "truncate",
+                          col.key === "title" &&
+                            cn(
+                              "sticky left-0 z-[1] border-r shadow-[2px_0_4px_-2px_rgba(0,0,0,0.15)] group-hover:bg-row-hover",
+                              rowBg
+                            )
+                        )}
+                      >
+                        {col.key === "actions" ? (
+                          <div
+                            className={cn(
+                              hstack({ gap: "xs" }),
+                              "justify-center"
+                            )}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => handleButtonClick(row)}
+                              aria-label={`View details for ${row.title || "Untitled"}`}
+                            >
+                              <Info className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => handleCopy(row, rowKey)}
+                              aria-label={`Copy raw JSON for ${row.title || "Untitled"}`}
+                            >
+                              {copiedId === rowKey ? (
+                                <Check className="h-4 w-4" />
+                              ) : (
+                                <Copy className="h-4 w-4" />
+                              )}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() =>
+                                window.open(
+                                  extractCatalogUrl(row),
+                                  "_blank",
+                                  "noopener,noreferrer"
+                                )
+                              }
+                              aria-label={`Open API link for ${row.title || "Untitled"}`}
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : col.key === "title" ? (
+                          <span className="font-medium">
+                            {renderCell(col.key, row)}
+                          </span>
+                        ) : (
+                          <span className="text-sm">
+                            {renderCell(col.key, row)}
+                          </span>
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         )}
 
         {/* Load More Button */}
         {hasNextPage && (
-          <div className="text-center p-4">
+          <div className="flex-none text-center p-4 border-t border-border">
             <Button
               onClick={onLoadMore}
               disabled={isLoadingMore}

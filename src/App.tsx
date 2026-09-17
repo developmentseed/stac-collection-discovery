@@ -249,7 +249,7 @@ export const App = () => {
   }, [results, selectedHosts, selectedProviders]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-16">
+    <div className="h-dvh flex flex-col overflow-hidden bg-background text-foreground">
       {/* Skip to main content link */}
       <a
         href="#main-content"
@@ -258,7 +258,7 @@ export const App = () => {
         Skip to main content
       </a>
 
-      <header className="border-b bg-background">
+      <header className="flex-none border-b bg-background">
         <div
           className={cn(
             "flex items-center justify-between gap-4 p-4 lg:p-6",
@@ -281,7 +281,7 @@ export const App = () => {
             />
             <span className={stack({ gap: "xs" })}>
               <span className="text-lg font-semibold leading-tight">
-                STAC Collection Search
+                STAC Collection Discovery
               </span>
               <span className="text-sm text-muted-foreground leading-tight">
                 Search across {stacApis.length} configured STAC APIs
@@ -297,9 +297,9 @@ export const App = () => {
       <main
         id="main-content"
         className={cn(
-          stack({ gap: "md" }),
-          "p-4 lg:p-6",
+          "flex-1 min-h-0 flex flex-col",
           container({ maxWidth: "custom" }),
+          stack({ gap: "xs" }),
           "mx-auto"
         )}
       >
@@ -334,26 +334,30 @@ export const App = () => {
             <AlertDescription>{apiError}</AlertDescription>
           </Alert>
         )}
+        <div className={cn(stack({ gap: "sm" }), "flex-none")}>
+          <React.Suspense fallback={<LoadingSpinner size="sm" />}>
+            <SearchForm
+              onSubmit={handleSearch}
+              apiError={apiError}
+              isLoading={loading}
+              conformanceCapabilities={conformanceCapabilities}
+              conformanceLoading={conformanceLoading}
+              results={results}
+              stacApis={stacApis}
+              selectedProviders={selectedProviders}
+              selectedHosts={selectedHosts}
+              onProvidersChange={setSelectedProviders}
+              onHostsChange={setSelectedHosts}
+            />
+          </React.Suspense>
+        </div>
 
-        <React.Suspense fallback={<LoadingSpinner size="sm" />}>
-          <SearchForm
-            onSubmit={handleSearch}
-            apiError={apiError}
-            isLoading={loading}
-            conformanceCapabilities={conformanceCapabilities}
-            conformanceLoading={conformanceLoading}
-            results={results}
-            stacApis={stacApis}
-            selectedProviders={selectedProviders}
-            selectedHosts={selectedHosts}
-            onProvidersChange={setSelectedProviders}
-            onHostsChange={setSelectedHosts}
-          />
-        </React.Suspense>
-
-        <section aria-label="Search results">
+        <section
+          aria-label="Search results"
+          className="flex-1 min-h-0 flex flex-col"
+        >
           {loading ? (
-            <div className="flex items-center justify-center h-[calc(100vh-360px)]">
+            <div className="flex flex-1 items-center justify-center">
               <LoadingSpinner size="lg" text="Searching collections..." />
             </div>
           ) : (
@@ -372,8 +376,8 @@ export const App = () => {
         </section>
       </main>
 
-      {/* Fixed footer with links */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-background border-t z-40">
+      {/* Footer with links */}
+      <footer className="flex-none bg-background border-t">
         <nav
           className={cn(
             "flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 p-2 sm:p-3",

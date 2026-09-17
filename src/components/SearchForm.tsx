@@ -214,6 +214,10 @@ const SearchForm: React.FC<Props> = ({
     submitWith(cleared);
   };
 
+  const clearKeyword = () => {
+    setFormData({ ...formData, q: "" });
+  };
+
   const removeBbox = () => {
     const next = { ...formData, bbox: "" };
     setFormData(next);
@@ -272,6 +276,7 @@ const SearchForm: React.FC<Props> = ({
           <Input
             id="q"
             name="q"
+            type="text"
             value={formData.q}
             onChange={handleChange}
             placeholder={
@@ -280,9 +285,19 @@ const SearchForm: React.FC<Props> = ({
                 : "Enter keywords to search descriptions"
             }
             disabled={isTextSearchDisabled}
-            className="pl-9"
+            className={cn("pl-9", formData.q && "pr-9")}
             aria-describedby={isTextSearchDisabled ? "q-help" : undefined}
           />
+          {!!formData.q && !isTextSearchDisabled && (
+            <button
+              type="button"
+              onClick={clearKeyword}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label="Clear keyword search"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </button>
+          )}
           {isTextSearchDisabled && (
             <p id="q-help" className="sr-only">
               Text search is disabled - no upstream APIs support free-text

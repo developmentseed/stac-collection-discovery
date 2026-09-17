@@ -47,16 +47,16 @@ const ResultsFilters: React.FC<Props> = ({
         <PopoverTrigger asChild>
           <Button type="button" variant="outline" size="sm">
             Provider
-            {selectedProviders.length > 0 && (
-              <span
-                className="h-2 w-2 rounded-full bg-primary"
-                aria-hidden="true"
-              />
-            )}
             <ChevronDown
               className={cn("h-4 w-4 transition-transform duration-200")}
               aria-hidden="true"
             />
+            {selectedProviders.length > 0 && (
+              <span
+                className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-blue-500 ring-2 ring-background"
+                aria-hidden="true"
+              />
+            )}
           </Button>
         </PopoverTrigger>
         <PopoverContent
@@ -103,16 +103,16 @@ const ResultsFilters: React.FC<Props> = ({
         <PopoverTrigger asChild>
           <Button type="button" variant="outline" size="sm">
             Host
-            {selectedHosts.length > 0 && (
-              <span
-                className="h-2 w-2 rounded-full bg-primary"
-                aria-hidden="true"
-              />
-            )}
             <ChevronDown
               className={cn("h-4 w-4 transition-transform duration-200")}
               aria-hidden="true"
             />
+            {selectedHosts.length > 0 && (
+              <span
+                className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-blue-500 ring-2 ring-background"
+                aria-hidden="true"
+              />
+            )}
           </Button>
         </PopoverTrigger>
         <PopoverContent

@@ -22,6 +22,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import Map from "ol/Map";
 import FullScreen from "ol/control/FullScreen.js";
 import View from "ol/View";
@@ -34,7 +39,16 @@ import "ol/ol.css";
 import "ol-layerswitcher/dist/ol-layerswitcher.css";
 import ReactMarkdown from "react-markdown";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ChevronDown, Loader2, AlertCircle } from "lucide-react";
+import {
+  ChevronDown,
+  Loader2,
+  AlertCircle,
+  Info,
+  Copy,
+  Check,
+  ExternalLink,
+  Columns3,
+} from "lucide-react";
 import { cn } from "@/utils/utils";
 import { stack, hstack, touchTarget, dialog } from "@/utils/responsive";
 import { useDarkMode } from "@/utils/hooks";
@@ -191,58 +205,26 @@ interface Props {
   stacApis?: string[];
 }
 
-type ColumnBreakpoints = {
-  base: string[];
-  xl: string[];
-};
+interface ColumnDef {
+  key: string;
+  label: string;
+  alwaysVisible?: boolean;
+}
 
-const specificColumns: ColumnBreakpoints = {
-  base: ["title", "catalog_url"],
-  xl: ["title", "id", "catalog_url"],
-};
+const COLUMN_DEFS: ColumnDef[] = [
+  { key: "title", label: "Title", alwaysVisible: true },
+  { key: "id", label: "id" },
+  { key: "dateRange", label: "Date Range" },
+  { key: "api", label: "API" },
+  { key: "actions", label: "Actions", alwaysVisible: true },
+];
 
-const KEY_DISPLAY_NAMES: Record<string, string> = {
-  catalog_url: "API",
-  temporal_extent: "temporal extent",
-  spatial_extent: "spatial extent",
-  hint: "item search code hint",
-  extent: "extent",
-  links: "links",
-  stac_version: "STAC version",
-  stac_extensions: "STAC extensions",
-  item_assets: "item assets",
-};
-
-const formatKeyName = (key: string): string => {
-  if (key in KEY_DISPLAY_NAMES) {
-    return KEY_DISPLAY_NAMES[key];
-  }
-  return key;
-};
-
-// Custom hook for responsive breakpoints
-const useBreakpoint = () => {
-  const [columns, setColumns] = useState<string[]>(specificColumns.base);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const handleResize = () => {
-      const width = window.innerWidth;
-      setIsMobile(width < 640);
-
-      if (width >= 1280) {
-        setColumns(specificColumns.xl);
-      } else {
-        setColumns(specificColumns.base);
-      }
-    };
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  return { columns, isMobile };
+const getFirstIntervalDate = (
+  collection: Record<string, any>
+): string | null => {
+  const interval = collection.extent?.temporal?.interval;
+  if (!Array.isArray(interval) || !Array.isArray(interval[0])) return null;
+  return interval[0][0] || null;
 };
 
 const ResultsTable: React.FC<Props> = ({
@@ -259,11 +241,35 @@ const ResultsTable: React.FC<Props> = ({
     string,
     any | HintFormat
   > | null>(null);
-  const { columns, isMobile } = useBreakpoint();
 
   // State for collapsible sections
   const [showLinks, setShowLinks] = useState(false);
   const [showJSON, setShowJSON] = useState(false);
+
+  // Column visibility (title and actions are always shown)
+  const [hiddenColumns, setHiddenColumns] = useState<Set<string>>(new Set());
+  const visibleColumns = COLUMN_DEFS.filter(
+    (col) => col.alwaysVisible || !hiddenColumns.has(col.key)
+  );
+  const toggleColumn = (key: string) => {
+    setHiddenColumns((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  // Copy-to-clipboard feedback state
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const handleCopy = (row: Record<string, any>, rowKey: string) => {
+    navigator.clipboard.writeText(JSON.stringify(row, null, 2));
+    setCopiedId(rowKey);
+    setTimeout(
+      () => setCopiedId((current) => (current === rowKey ? null : current)),
+      1500
+    );
+  };
 
   // Sorting state
   const [sortColumn, setSortColumn] = useState<string | null>(null);
@@ -283,38 +289,33 @@ const ResultsTable: React.FC<Props> = ({
   const sortedData = React.useMemo(() => {
     if (!sortColumn) return data;
 
+    const getSortValue = (row: Record<string, any>): any => {
+      if (sortColumn === "dateRange") return getFirstIntervalDate(row) || "";
+      if (sortColumn === "api") return extractCatalogUrl(row);
+      return row[sortColumn];
+    };
+
     const sortedArray = [...data].sort((a, b) => {
-      if (a[sortColumn] < b[sortColumn]) return sortOrder === "asc" ? -1 : 1;
-      if (a[sortColumn] > b[sortColumn]) return sortOrder === "asc" ? 1 : -1;
+      const aValue = getSortValue(a);
+      const bValue = getSortValue(b);
+      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
       return 0;
     });
 
     return sortedArray;
   }, [sortColumn, sortOrder, data]);
 
-  const renderCell = (
-    header: string,
-    value: any,
-    row?: Record<string, any>
-  ) => {
-    if (header === "catalog_url" && row) {
+  const renderCell = (header: string, row: Record<string, any>) => {
+    if (header === "api") {
       return extractCatalogUrl(row);
-    } else if (header === "temporal_range" && Array.isArray(value)) {
-      return formatTemporalRange(value);
-    } else if (header === "keywords" && Array.isArray(value)) {
-      return (
-        <div className="flex flex-wrap gap-1">
-          {value.map((keyword, index) => (
-            <Badge key={index} variant="secondary">
-              {keyword}
-            </Badge>
-          ))}
-        </div>
-      );
-    } else if (Array.isArray(value)) {
-      return value.join(", ");
+    } else if (header === "dateRange") {
+      const interval = row.extent?.temporal?.interval;
+      return Array.isArray(interval) ? formatTemporalRange(interval) : "";
+    } else if (Array.isArray(row[header])) {
+      return row[header].join(", ");
     }
-    return value;
+    return row[header];
   };
 
   const handleButtonClick = (record: Record<string, any>) => {
@@ -322,127 +323,64 @@ const ResultsTable: React.FC<Props> = ({
     setIsOpen(true);
   };
 
-  // Mobile card view renderer
-  const MobileCardView = () => {
-    if (data.length === 0) {
-      if (!hasSearched) {
-        return (
-          <div
-            className="flex flex-col items-center justify-center p-12 text-center"
-            role="status"
-          >
-            <img
-              src={logoSvg}
-              className="h-16 w-16 mb-4"
-              aria-hidden="true"
-              alt=""
-            />
-            <h3 className="text-lg font-semibold mb-2">
-              Search for collections
-            </h3>
-            <p className="text-sm text-muted-foreground max-w-md mb-3">
-              Search across all configured STAC APIs:
-            </p>
-            {stacApis.length > 0 && (
-              <ul className="text-xs text-muted-foreground space-y-1 max-w-md text-left">
-                {stacApis.map((api, index) => (
-                  <li key={index} className="break-all">
-                    {api}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        );
-      }
-      return (
-        <div
-          className="flex flex-col items-center justify-center p-12 text-center"
-          role="status"
-        >
-          <img
-            src={logoSvg}
-            className="h-16 w-16 mb-4"
-            aria-hidden="true"
-            alt=""
-          />
-          <h3 className="text-lg font-semibold mb-2">No collections found</h3>
-          <p className="text-sm text-muted-foreground max-w-md">
-            Try adjusting your search criteria or check your API configuration
-            to find collections.
-          </p>
-        </div>
-      );
-    }
-
-    return (
-      <div
-        className={cn(stack({ gap: "md" }), "p-4")}
-        role="list"
-        aria-label="Search results"
-      >
-        {sortedData.map((row, rowIndex) => (
-          <button
-            key={rowIndex}
-            onClick={() => handleButtonClick(row)}
-            className={cn(
-              "border border-border rounded-lg p-4 cursor-pointer hover:bg-muted/50 transition-colors duration-150 w-full text-left",
-              stack({ gap: "sm" }),
-              touchTarget()
-            )}
-            role="listitem"
-            aria-label={`View details for ${row.title || "Untitled"}`}
-          >
-            <div>
-              <h3 className="font-medium text-base mb-1">
-                {row.title || "Untitled"}
-              </h3>
-              {row.id && (
-                <p className="text-sm text-muted-foreground font-mono">
-                  {row.id}
-                </p>
-              )}
-            </div>
-            <div className="text-sm">
-              <span className="text-muted-foreground">API: </span>
-              <span className="break-all">{extractCatalogUrl(row)}</span>
-            </div>
-            {row.description && (
-              <p className="text-sm text-muted-foreground line-clamp-2">
-                {row.description}
-              </p>
-            )}
-            <div className="text-xs text-muted-foreground">
-              Tap for details →
-            </div>
-          </button>
-        ))}
-      </div>
-    );
-  };
-
   return (
-    <>
-      <div className="overflow-auto max-h-full">
-        {failedApis.length > 0 && (
-          <Alert className="m-4" variant="default">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              The following API{failedApis.length > 1 ? "s" : ""} did not
-              respond and results may be incomplete:
-              <ul className="mt-1 list-disc list-inside">
-                {failedApis.map((api) => (
-                  <li key={api} className="break-all">
-                    {api}
-                  </li>
+    <div className={stack({ gap: "sm" })}>
+      {failedApis.length > 0 && (
+        <Alert variant="default">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            The following API{failedApis.length > 1 ? "s" : ""} did not respond
+            and results may be incomplete:
+            <ul className="mt-1 list-disc list-inside">
+              {failedApis.map((api) => (
+                <li key={api} className="break-all">
+                  {api}
+                </li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {data.length > 0 && (
+        <div className="flex items-center justify-between gap-2">
+          <p
+            className="text-sm text-muted-foreground"
+            role="status"
+            aria-live="polite"
+          >
+            {data.length} {data.length === 1 ? "result" : "results"}
+          </p>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Columns3 className="h-4 w-4" aria-hidden="true" />
+                Columns
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-56">
+              <div className={stack({ gap: "sm" })}>
+                {COLUMN_DEFS.filter((col) => !col.alwaysVisible).map((col) => (
+                  <label
+                    key={col.key}
+                    className={cn(hstack({ gap: "sm" }), "text-sm")}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={!hiddenColumns.has(col.key)}
+                      onChange={() => toggleColumn(col.key)}
+                    />
+                    {col.label}
+                  </label>
                 ))}
-              </ul>
-            </AlertDescription>
-          </Alert>
-        )}
-        {isMobile ? (
-          <MobileCardView />
-        ) : data.length === 0 ? (
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+      )}
+
+      <div className="w-full rounded-lg border bg-card overflow-hidden">
+        {data.length === 0 ? (
           !hasSearched ? (
             <div
               className="flex flex-col items-center justify-center p-16 text-center"
@@ -495,78 +433,153 @@ const ResultsTable: React.FC<Props> = ({
             </div>
           )
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {columns.map((header) => (
-                  <TableHead
-                    key={header}
-                    className="sticky top-0 z-10 bg-background cursor-pointer py-2 px-3 font-semibold border-b border-border"
-                    onClick={() => handleSort(header)}
-                    role="columnheader"
-                    aria-sort={
-                      sortColumn === header
-                        ? sortOrder === "asc"
-                          ? "ascending"
-                          : "descending"
-                        : "none"
-                    }
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        handleSort(header);
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {visibleColumns.map((col) => (
+                    <TableHead
+                      key={col.key}
+                      className={cn(
+                        "sticky top-0 z-10 bg-background py-2 px-3 font-semibold border-b border-border whitespace-nowrap",
+                        col.key !== "actions" && "cursor-pointer",
+                        col.key === "title" &&
+                          "left-0 z-20 w-64 max-w-64 border-r shadow-[2px_0_4px_-2px_rgba(0,0,0,0.15)]"
+                      )}
+                      onClick={
+                        col.key !== "actions"
+                          ? () => handleSort(col.key)
+                          : undefined
                       }
-                    }}
-                  >
-                    <div className="flex items-center gap-1">
-                      {formatKeyName(header)}
-                      {sortColumn === header && (
-                        <span className="text-xs" aria-hidden="true">
-                          {sortOrder === "asc" ? "↑" : "↓"}
-                        </span>
-                      )}
-                    </div>
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedData.map((row, rowIndex) => (
-                <TableRow
-                  key={rowIndex}
-                  onClick={() => handleButtonClick(row)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      handleButtonClick(row);
-                    }
-                  }}
-                  className={cn(
-                    "cursor-pointer hover:bg-muted/50 transition-colors duration-150",
-                    rowIndex % 2 === 1 && "bg-muted/20"
-                  )}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`View details for ${row.title || "Untitled"}`}
-                >
-                  {columns.map((header) => (
-                    <TableCell key={header} className="py-2 px-3">
-                      {header === "title" ? (
-                        <span className="font-medium">
-                          {renderCell(header, row[header], row)}
-                        </span>
+                      role="columnheader"
+                      aria-sort={
+                        sortColumn === col.key
+                          ? sortOrder === "asc"
+                            ? "ascending"
+                            : "descending"
+                          : "none"
+                      }
+                      tabIndex={col.key !== "actions" ? 0 : undefined}
+                      onKeyDown={(e) => {
+                        if (
+                          col.key !== "actions" &&
+                          (e.key === "Enter" || e.key === " ")
+                        ) {
+                          e.preventDefault();
+                          handleSort(col.key);
+                        }
+                      }}
+                    >
+                      {col.key === "actions" ? (
+                        <span className="sr-only">{col.label}</span>
                       ) : (
-                        <span className="text-sm">
-                          {renderCell(header, row[header], row)}
-                        </span>
+                        <div className="flex items-center gap-1">
+                          {col.label}
+                          {sortColumn === col.key && (
+                            <span className="text-xs" aria-hidden="true">
+                              {sortOrder === "asc" ? "↑" : "↓"}
+                            </span>
+                          )}
+                        </div>
                       )}
-                    </TableCell>
+                    </TableHead>
                   ))}
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {sortedData.map((row, rowIndex) => {
+                  const rowKey = row.id || String(rowIndex);
+                  const rowBg = rowIndex % 2 === 1 ? "bg-muted/20" : "bg-card";
+                  return (
+                    <TableRow
+                      key={rowKey}
+                      onClick={() => handleButtonClick(row)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleButtonClick(row);
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`View details for ${row.title || "Untitled"}`}
+                      className={cn(
+                        "cursor-pointer transition-colors duration-150 hover:bg-muted/50",
+                        rowIndex % 2 === 1 && "bg-muted/20"
+                      )}
+                    >
+                      {visibleColumns.map((col) => (
+                        <TableCell
+                          key={col.key}
+                          className={cn(
+                            "py-2 px-3 whitespace-nowrap",
+                            col.key === "title" &&
+                              cn(
+                                "sticky left-0 z-[1] w-64 max-w-64 truncate border-r shadow-[2px_0_4px_-2px_rgba(0,0,0,0.15)]",
+                                rowBg
+                              )
+                          )}
+                        >
+                          {col.key === "actions" ? (
+                            <div
+                              className={hstack({ gap: "xs" })}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => handleButtonClick(row)}
+                                aria-label={`View details for ${row.title || "Untitled"}`}
+                              >
+                                <Info className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => handleCopy(row, rowKey)}
+                                aria-label={`Copy raw JSON for ${row.title || "Untitled"}`}
+                              >
+                                {copiedId === rowKey ? (
+                                  <Check className="h-4 w-4" />
+                                ) : (
+                                  <Copy className="h-4 w-4" />
+                                )}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() =>
+                                  window.open(
+                                    extractCatalogUrl(row),
+                                    "_blank",
+                                    "noopener,noreferrer"
+                                  )
+                                }
+                                aria-label={`Open API link for ${row.title || "Untitled"}`}
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ) : col.key === "title" ? (
+                            <span className="font-medium">
+                              {renderCell(col.key, row)}
+                            </span>
+                          ) : (
+                            <span className="text-sm">
+                              {renderCell(col.key, row)}
+                            </span>
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         )}
 
         {/* Load More Button */}
@@ -860,7 +873,7 @@ const ResultsTable: React.FC<Props> = ({
           </DialogContent>
         </Dialog>
       )}
-    </>
+    </div>
   );
 };
 

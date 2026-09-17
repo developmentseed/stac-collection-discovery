@@ -59,6 +59,7 @@ interface ApiConfigPanelProps {
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   failedApis?: string[];
+  variant?: "panel" | "compact";
 }
 
 const ApiConfigPanel: React.FC<ApiConfigPanelProps> = ({
@@ -67,6 +68,7 @@ const ApiConfigPanel: React.FC<ApiConfigPanelProps> = ({
   isOpen: controlledIsOpen,
   onOpenChange: controlledOnOpenChange,
   failedApis = [],
+  variant = "panel",
 }) => {
   // Use internal state if not controlled from parent
   const [internalIsOpen, setInternalIsOpen] = useState(false);
@@ -360,42 +362,58 @@ const ApiConfigPanel: React.FC<ApiConfigPanelProps> = ({
     }
   };
 
+  const statusDot = isLoading ? (
+    <Loader2 className={`h-3 w-3 animate-spin text-${color}-500`} />
+  ) : (
+    <div
+      className="w-3 h-3 rounded-full shrink-0"
+      style={{
+        backgroundColor:
+          color === "green"
+            ? "rgb(34 197 94)"
+            : color === "orange"
+              ? "rgb(249 115 22)"
+              : color === "amber"
+                ? "rgb(234 179 8)"
+                : color === "red"
+                  ? "rgb(239 68 68)"
+                  : "rgb(107 114 128)",
+      }}
+    />
+  );
+
   return (
     <>
-      <div
-        className={cn(
-          "p-3 rounded-md border border-border",
-          hstack({ gap: "sm" })
-        )}
-      >
-        {isLoading ? (
-          <Loader2 className={`h-3 w-3 animate-spin text-${color}-500`} />
-        ) : (
-          <div
-            className={`w-3 h-3 rounded-full bg-${color}-500`}
-            style={{
-              backgroundColor:
-                color === "green"
-                  ? "rgb(34 197 94)"
-                  : color === "orange"
-                    ? "rgb(249 115 22)"
-                    : color === "amber"
-                      ? "rgb(234 179 8)"
-                      : color === "red"
-                        ? "rgb(239 68 68)"
-                        : "rgb(107 114 128)",
-            }}
-          />
-        )}
-        <span className="font-medium flex-1">
-          {stacApis.length} API{stacApis.length !== 1 ? "s" : ""} configured •{" "}
-          {status}
-        </span>
-        <Button size="sm" variant="outline" onClick={() => setIsOpen(true)}>
-          <Settings className="mr-2 h-4 w-4" />
-          Settings
-        </Button>
-      </div>
+      {variant === "compact" ? (
+        <div className={cn(hstack({ gap: "sm" }), "flex-wrap")}>
+          {statusDot}
+          <span className="text-sm font-medium">
+            {stacApis.length} API{stacApis.length !== 1 ? "s" : ""} configured •{" "}
+            {status}
+          </span>
+          <Button size="sm" variant="outline" onClick={() => setIsOpen(true)}>
+            <Settings className="mr-2 h-4 w-4" />
+            API Settings
+          </Button>
+        </div>
+      ) : (
+        <div
+          className={cn(
+            "p-3 rounded-md border border-border",
+            hstack({ gap: "sm" })
+          )}
+        >
+          {statusDot}
+          <span className="font-medium flex-1">
+            {stacApis.length} API{stacApis.length !== 1 ? "s" : ""} configured •{" "}
+            {status}
+          </span>
+          <Button size="sm" variant="outline" onClick={() => setIsOpen(true)}>
+            <Settings className="mr-2 h-4 w-4" />
+            Settings
+          </Button>
+        </div>
+      )}
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className={cn(dialog({ size: "md" }), "p-4 sm:p-6")}>

@@ -37,6 +37,9 @@ vi.mock("./components/ResultsTable", () => ({
     failedApis?: string[];
   }) => (
     <div>
+      <p>
+        {data.length} {data.length === 1 ? "result" : "results"}
+      </p>
       <ul aria-label="Rendered results">
         {data.map((collection) => (
           <li key={collection.id}>{collection.title}</li>
@@ -77,6 +80,7 @@ describe("src/App.tsx", () => {
   });
 
   it("renders the search surface after startup requests succeed", async () => {
+    const user = userEvent.setup();
     server.use(
       http.get("http://localhost:8000/api", () =>
         HttpResponse.json({ info: { summary: "Docs summary" } })
@@ -93,11 +97,13 @@ describe("src/App.tsx", () => {
 
     render(<App />);
 
-    expect(await screen.findByText("Docs summary")).toBeInTheDocument();
-    expect(screen.getByText("API Config Panel")).toBeInTheDocument();
+    expect(await screen.findByText("API Config Panel")).toBeInTheDocument();
     expect(screen.getByText("Run search")).toBeInTheDocument();
     expect(screen.queryByText(/Failed to load API documentation/i)).toBeNull();
     expect(screen.queryByText(/Failed to load API conformance/i)).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "About" }));
+    expect(await screen.findByText("Docs summary")).toBeInTheDocument();
   });
 
   it("renders search results and failed upstream APIs after a successful search", async () => {
@@ -134,7 +140,7 @@ describe("src/App.tsx", () => {
 
     expect(await screen.findByText("Alpha")).toBeVisible();
     expect(screen.getByText("https://failed.example.com")).toBeVisible();
-    expect(screen.getByText("Found 1 result")).toBeVisible();
+    expect(screen.getByText("1 result")).toBeVisible();
   });
 
   it("shows surfaced API errors and exits the loading state after a failed search", async () => {
@@ -208,7 +214,7 @@ describe("src/App.tsx", () => {
     expect(
       screen.getByRole("list", { name: "Rendered results" })
     ).toHaveTextContent("Beta");
-    expect(screen.getByText("Found 2 results")).toBeVisible();
+    expect(screen.getByText("2 results")).toBeVisible();
   });
 
   it("triggers the initial search once from URL parameters after STAC APIs initialize", async () => {

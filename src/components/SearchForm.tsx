@@ -5,7 +5,8 @@ import { Label } from "./ui/label";
 import { Badge } from "./ui/badge";
 import { DatePicker } from "./ui/date-picker";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { cn } from "../utils/utils";
+import ResultsFilters from "./ResultsFilters";
+import { cn, getHostname } from "../utils/utils";
 import { hstack, touchTarget } from "../utils/responsive";
 import { Calendar, Scan, Search, X } from "lucide-react";
 
@@ -59,14 +60,6 @@ const getInitialFormData = () => {
     endDatetime: end,
     q: params.get("q") || "",
   };
-};
-
-const getHostname = (url: string): string => {
-  try {
-    return new URL(url).hostname;
-  } catch {
-    return url;
-  }
 };
 
 const getUniqueProviders = (results: Array<Record<string, any>>): string[] => {
@@ -205,19 +198,6 @@ const SearchForm: React.FC<Props> = ({
   const updateBoundingBox = (bbox: string) => {
     setFormData({ ...formData, bbox });
     setIsMapOpen(false);
-  };
-
-  const toggleSelection = (
-    value: string,
-    selected: string[],
-    onChange?: (values: string[]) => void
-  ) => {
-    if (!onChange) return;
-    if (selected.includes(value)) {
-      onChange(selected.filter((v) => v !== value));
-    } else {
-      onChange([...selected, value]);
-    }
   };
 
   const clearAll = () => {
@@ -362,16 +342,28 @@ const SearchForm: React.FC<Props> = ({
                   {bboxError}
                 </p>
               )}
-              <Button
-                type="button"
-                onClick={() => setIsMapOpen(true)}
-                variant="outline"
-                size="sm"
-                className={touchTarget()}
-                aria-label="Open map to draw bounding box"
-              >
-                Draw on Map
-              </Button>
+              <div className="flex flex-col gap-2">
+                <Button
+                  type="button"
+                  onClick={removeBbox}
+                  disabled={!formData.bbox}
+                  variant="ghost"
+                  size="sm"
+                  aria-label="Clear bounding box filter"
+                >
+                  Clear
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => setIsMapOpen(true)}
+                  variant="outline"
+                  size="sm"
+                  className={touchTarget()}
+                  aria-label="Open map to draw bounding box"
+                >
+                  Draw on Map
+                </Button>
+              </div>
             </div>
           </PopoverContent>
         </Popover>
@@ -430,107 +422,18 @@ const SearchForm: React.FC<Props> = ({
                   />
                 </div>
               </div>
+              <Button
+                type="button"
+                onClick={removeDateRange}
+                disabled={!hasDateRange}
+                variant="ghost"
+                size="sm"
+                className={cn("self-start")}
+                aria-label="Clear date range filter"
+              >
+                Clear
+              </Button>
             </fieldset>
-          </PopoverContent>
-        </Popover>
-
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button type="button" variant="outline" className="h-10 gap-2">
-              Provider
-              {selectedProviders.length > 0 && (
-                <span
-                  className="h-2 w-2 rounded-full bg-primary"
-                  aria-hidden="true"
-                />
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent
-            className="w-64 max-w-[calc(100vw-2rem)]"
-            align="start"
-            collisionPadding={16}
-          >
-            <div className="flex flex-col gap-2">
-              <p className="font-semibold text-sm">provider</p>
-              {providerOptions.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Search to see available providers
-                </p>
-              ) : (
-                providerOptions.map((provider) => (
-                  <label
-                    key={provider}
-                    className={cn(
-                      hstack({ gap: "sm" }),
-                      "text-sm text-muted-foreground break-words"
-                    )}
-                  >
-                    <input
-                      type="checkbox"
-                      className="shrink-0"
-                      checked={selectedProviders.includes(provider)}
-                      onChange={() =>
-                        toggleSelection(
-                          provider,
-                          selectedProviders,
-                          onProvidersChange
-                        )
-                      }
-                    />
-                    {provider}
-                  </label>
-                ))
-              )}
-            </div>
-          </PopoverContent>
-        </Popover>
-
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button type="button" variant="outline" className="h-10 gap-2">
-              Host
-              {selectedHosts.length > 0 && (
-                <span
-                  className="h-2 w-2 rounded-full bg-primary"
-                  aria-hidden="true"
-                />
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent
-            className="w-64 max-w-[calc(100vw-2rem)]"
-            align="start"
-            collisionPadding={16}
-          >
-            <div className="flex flex-col gap-2">
-              <p className="font-semibold text-sm">host</p>
-              {hostOptions.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No APIs configured
-                </p>
-              ) : (
-                hostOptions.map((api) => (
-                  <label
-                    key={api}
-                    className={cn(
-                      hstack({ gap: "sm" }),
-                      "text-sm text-muted-foreground"
-                    )}
-                  >
-                    <input
-                      type="checkbox"
-                      className="shrink-0"
-                      checked={selectedHosts.includes(api)}
-                      onChange={() =>
-                        toggleSelection(api, selectedHosts, onHostsChange)
-                      }
-                    />
-                    <span className="break-all">{getHostname(api)}</span>
-                  </label>
-                ))
-              )}
-            </div>
           </PopoverContent>
         </Popover>
 
@@ -545,6 +448,15 @@ const SearchForm: React.FC<Props> = ({
           {isLoading ? "Searching..." : "Search"}
         </Button>
       </div>
+
+      <ResultsFilters
+        providerOptions={providerOptions}
+        hostOptions={hostOptions}
+        selectedProviders={selectedProviders}
+        selectedHosts={selectedHosts}
+        onProvidersChange={onProvidersChange}
+        onHostsChange={onHostsChange}
+      />
 
       {hasActiveFilters && (
         <div className={cn(hstack({ gap: "sm" }), "flex-wrap")}>

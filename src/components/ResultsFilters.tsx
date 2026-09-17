@@ -45,7 +45,12 @@ const ResultsFilters: React.FC<Props> = ({
 
       <Popover>
         <PopoverTrigger asChild>
-          <Button type="button" variant="outline" size="sm">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="relative gap-2"
+          >
             Provider
             <ChevronDown
               className={cn("h-4 w-4 transition-transform duration-200")}
@@ -101,7 +106,12 @@ const ResultsFilters: React.FC<Props> = ({
 
       <Popover>
         <PopoverTrigger asChild>
-          <Button type="button" variant="outline" size="sm">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="relative gap-2"
+          >
             Host
             <ChevronDown
               className={cn("h-4 w-4 transition-transform duration-200")}

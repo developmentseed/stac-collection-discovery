@@ -562,6 +562,7 @@ const ResultsTable: React.FC<Props> = ({
                               className="h-8 w-8"
                               onClick={() => handleButtonClick(row)}
                               aria-label={`View details for ${row.title || "Untitled"}`}
+                              title="View full collection details"
                             >
                               <Info className="h-4 w-4" />
                             </Button>
@@ -571,6 +572,7 @@ const ResultsTable: React.FC<Props> = ({
                               className="h-8 w-8"
                               onClick={() => handleCopy(row, rowKey)}
                               aria-label={`Copy raw JSON for ${row.title || "Untitled"}`}
+                              title="Copy raw JSON"
                             >
                               {copiedId === rowKey ? (
                                 <Check className="h-4 w-4" />
@@ -590,6 +592,7 @@ const ResultsTable: React.FC<Props> = ({
                                 )
                               }
                               aria-label={`Open API link for ${row.title || "Untitled"}`}
+                              title="Open API link"
                             >
                               <ExternalLink className="h-4 w-4" />
                             </Button>

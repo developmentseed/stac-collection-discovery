@@ -49,11 +49,14 @@ const ResultsFilters: React.FC<Props> = ({
             type="button"
             variant="outline"
             size="sm"
-            className="relative gap-2"
+            className={cn(
+              "relative gap-1 px-2 text-xs has-[>svg]:px-2",
+              "sm:gap-1.5 sm:px-3 sm:text-sm sm:has-[>svg]:px-2.5"
+            )}
           >
             Provider
             <ChevronDown
-              className={cn("h-4 w-4 transition-transform duration-200")}
+              className="h-3.5 w-3.5 transition-transform duration-200 sm:h-4 sm:w-4"
               aria-hidden="true"
             />
             {selectedProviders.length > 0 && (
@@ -110,11 +113,14 @@ const ResultsFilters: React.FC<Props> = ({
             type="button"
             variant="outline"
             size="sm"
-            className="relative gap-2"
+            className={cn(
+              "relative gap-1 px-2 text-xs has-[>svg]:px-2",
+              "sm:gap-1.5 sm:px-3 sm:text-sm sm:has-[>svg]:px-2.5"
+            )}
           >
             Host
             <ChevronDown
-              className={cn("h-4 w-4 transition-transform duration-200")}
+              className="h-3.5 w-3.5 transition-transform duration-200 sm:h-4 sm:w-4"
               aria-hidden="true"
             />
             {selectedHosts.length > 0 && (

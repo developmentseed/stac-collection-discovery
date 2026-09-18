@@ -350,10 +350,9 @@ const ResultsTable: React.FC<Props> = ({
         }}
         aria-label={`View details for ${row.title || "Untitled"}`}
         className={cn(
-          "shrink-0 border border-border rounded-lg p-4 cursor-pointer hover:bg-row-hover transition-colors duration-150 w-full text-left",
+          "shrink-0 border border-border rounded-lg p-4 cursor-pointer bg-card hover:bg-row-hover transition-colors duration-150 w-full text-left",
           stack({ gap: "sm" }),
-          touchTarget(),
-          rowIndex % 2 === 1 && "bg-row-stripe"
+          touchTarget()
         )}
       >
         <div>
@@ -366,6 +365,11 @@ const ResultsTable: React.FC<Props> = ({
             </p>
           )}
         </div>
+        {row.description && (
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            {row.description}
+          </p>
+        )}
         <div className="text-sm">
           <span className="text-muted-foreground">API: </span>
           <span className="break-all">{extractCatalogUrl(row)}</span>
@@ -376,51 +380,6 @@ const ResultsTable: React.FC<Props> = ({
             {formatTemporalRange(interval)}
           </div>
         )}
-        <div
-          className={cn(hstack({ gap: "xs" }), "justify-end pt-1")}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => handleButtonClick(row)}
-            aria-label={`View details for ${row.title || "Untitled"}`}
-            title="View full collection details"
-          >
-            <Info className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => handleCopy(row, rowKey)}
-            aria-label={`Copy raw JSON for ${row.title || "Untitled"}`}
-            title="Copy raw JSON"
-          >
-            {copiedId === rowKey ? (
-              <Check className="h-4 w-4" />
-            ) : (
-              <Copy className="h-4 w-4" />
-            )}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() =>
-              window.open(
-                extractCatalogUrl(row),
-                "_blank",
-                "noopener,noreferrer"
-              )
-            }
-            aria-label={`Open API link for ${row.title || "Untitled"}`}
-            title="Open API link"
-          >
-            <ExternalLink className="h-4 w-4" />
-          </Button>
-        </div>
       </div>
     );
   };
@@ -456,7 +415,11 @@ const ResultsTable: React.FC<Props> = ({
             </p>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hidden gap-2 sm:inline-flex"
+                >
                   <Columns3 className="h-4 w-4" aria-hidden="true" />
                   Columns
                 </Button>
@@ -485,7 +448,7 @@ const ResultsTable: React.FC<Props> = ({
         )}
       </div>
 
-      <div className="w-full flex-1 min-h-0 flex flex-col rounded-lg border bg-card overflow-hidden">
+      <div className="w-full flex-1 min-h-0 flex flex-col overflow-hidden sm:rounded-lg sm:border sm:bg-card">
         {data.length === 0 ? (
           !hasSearched ? (
             <div
@@ -543,7 +506,7 @@ const ResultsTable: React.FC<Props> = ({
             {/* Mobile card view */}
             <div
               className={cn(
-                "sm:hidden flex-1 min-h-0 overflow-auto p-3",
+                "sm:hidden flex-1 min-h-0 overflow-auto",
                 stack({ gap: "sm" })
               )}
               role="list"
@@ -727,13 +690,16 @@ const ResultsTable: React.FC<Props> = ({
 
         {/* Load More Button */}
         {hasNextPage && (
-          <div className="flex-none text-center p-4 border-t border-border">
+          <div className="flex-none text-center p-2 sm:p-4 sm:border-t sm:border-border">
             <Button
               onClick={onLoadMore}
               disabled={isLoadingMore}
               variant="outline"
               size="sm"
-              className={cn(touchTarget(), "min-w-[120px]")}
+              className={cn(
+                "h-8 min-w-0 px-3 text-xs",
+                "sm:h-auto sm:min-h-[44px] sm:min-w-[120px] sm:px-4 sm:text-sm"
+              )}
               aria-label={
                 isLoadingMore ? "Loading more results" : "Load more results"
               }
@@ -741,7 +707,7 @@ const ResultsTable: React.FC<Props> = ({
               {isLoadingMore ? (
                 <>
                   <Loader2
-                    className="mr-2 h-4 w-4 animate-spin"
+                    className="mr-1 h-3.5 w-3.5 animate-spin sm:mr-2 sm:h-4 sm:w-4"
                     aria-hidden="true"
                   />
                   Loading more...

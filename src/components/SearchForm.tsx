@@ -265,7 +265,7 @@ const SearchForm: React.FC<Props> = ({
       aria-label="Collection search form"
     >
       <div className="flex flex-wrap items-start gap-2">
-        <div className="relative flex-1 min-w-[200px]">
+        <div className="relative md:flex-1 sm:min-w-[200px] basis-full">
           <Label htmlFor="q" className="sr-only">
             Keywords
           </Label>
@@ -282,10 +282,10 @@ const SearchForm: React.FC<Props> = ({
             placeholder={
               isTextSearchDisabled
                 ? "Text search not available"
-                : "Enter keywords to search descriptions"
+                : "Enter terms for search on collection titles, descriptions, and keywords"
             }
             disabled={isTextSearchDisabled}
-            className={cn("pl-9", formData.q && "pr-9")}
+            className={cn("pl-9 text-xs md:text-sm", formData.q && "pr-9")}
             aria-describedby={isTextSearchDisabled ? "q-help" : undefined}
           />
           {!!formData.q && !isTextSearchDisabled && (
@@ -311,9 +311,12 @@ const SearchForm: React.FC<Props> = ({
             <Button
               type="button"
               variant="outline"
-              className="relative h-10 gap-2"
+              className={cn(
+                "relative h-8 gap-1 px-2 text-xs has-[>svg]:px-2",
+                "sm:h-10 sm:gap-2 sm:px-4 sm:text-sm sm:has-[>svg]:px-3"
+              )}
             >
-              <Scan className="h-4 w-4" aria-hidden="true" />
+              <Scan className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
               Bounding Box
               {!!formData.bbox && (
                 <span
@@ -388,9 +391,15 @@ const SearchForm: React.FC<Props> = ({
             <Button
               type="button"
               variant="outline"
-              className="relative h-10 gap-2"
+              className={cn(
+                "relative h-8 gap-1 px-2 text-xs has-[>svg]:px-2",
+                "sm:h-10 sm:gap-2 sm:px-4 sm:text-sm sm:has-[>svg]:px-3"
+              )}
             >
-              <Calendar className="h-4 w-4" aria-hidden="true" />
+              <Calendar
+                className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                aria-hidden="true"
+              />
               Date Range
               {hasDateRange && (
                 <span
@@ -455,7 +464,7 @@ const SearchForm: React.FC<Props> = ({
         <Button
           type="submit"
           disabled={isLoading}
-          className="h-10 min-w-[100px]"
+          className="h-8 min-w-0 px-3 text-xs sm:h-10 sm:min-w-[100px] sm:px-4 sm:text-sm"
           aria-label={
             isLoading ? "Searching collections" : "Search for collections"
           }

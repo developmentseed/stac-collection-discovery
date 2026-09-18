@@ -387,11 +387,16 @@ const ApiConfigPanel: React.FC<ApiConfigPanelProps> = ({
       {variant === "compact" ? (
         <div className={cn(hstack({ gap: "sm" }), "flex-wrap")}>
           {statusDot}
-          <span className="text-sm font-medium">
+          <span className="text-xs sm:text-sm font-medium">
             {stacApis.length} API{stacApis.length !== 1 ? "s" : ""} configured •{" "}
             {status}
           </span>
-          <Button size="sm" variant="outline" onClick={() => setIsOpen(true)}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setIsOpen(true)}
+            className="hidden sm:inline-flex"
+          >
             <Settings className="mr-2 h-4 w-4" />
             API Settings
           </Button>
@@ -498,7 +503,7 @@ const ApiConfigPanel: React.FC<ApiConfigPanelProps> = ({
                             />
                             <Label
                               htmlFor={`api-${api}`}
-                              className="text-xs sm:text-sm flex-1 truncate cursor-pointer"
+                              className="text-xs sm:text-sm flex-1 min-w-0 truncate cursor-pointer"
                             >
                               {api}
                             </Label>

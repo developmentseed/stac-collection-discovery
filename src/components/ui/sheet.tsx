@@ -78,10 +78,9 @@ const SheetHeader = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn(
-      "flex flex-col space-y-2 text-center sm:text-left",
-      className
-    )}
+    // pr-8 keeps title/description text clear of the absolutely
+    // positioned close button in the top-right corner (SheetContent)
+    className={cn("flex flex-col space-y-2 pr-8 text-left", className)}
     {...props}
   />
 );

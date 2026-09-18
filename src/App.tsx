@@ -8,12 +8,30 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { AlertCircle } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  AlertCircle,
+  ExternalLink,
+  FileText,
+  Info,
+  Menu,
+  Moon,
+  Search,
+  Settings,
+  Sun,
+} from "lucide-react";
 import GitHubLogo from "./assets/github-mark.svg";
 import Logo from "./assets/logo-text.svg";
 import { cn } from "@/utils/utils";
 import { stack, hstack, touchTarget, container } from "@/utils/responsive";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { useMediaQuery, useDarkMode, toggleColorMode } from "@/utils/hooks";
 
 import { ColorModeSwitcher } from "./ColorModeSwitcher";
 import {
@@ -59,6 +77,16 @@ export const App = () => {
 
   // About modal state
   const [isAboutOpen, setIsAboutOpen] = React.useState(false);
+
+  // Mobile search accordion state - open by default so first-time visitors
+  // see the search tools/filters; collapses once a search has been run
+  // (see handleSearch) and can be reopened via the header's toggle button
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = React.useState(true);
+  const isDesktop = useMediaQuery("(min-width: 640px)");
+
+  // Mobile hamburger menu state - holds nav items relocated from the footer
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const isDark = useDarkMode();
 
   // Client-side facet filters applied to fetched results
   const [selectedHosts, setSelectedHosts] = React.useState<string[]>([]);
@@ -134,6 +162,7 @@ export const App = () => {
     setApiError(null);
     setResults([]);
     setFailedApis([]);
+    setIsMobileSearchOpen(false); // Collapse the mobile search panel on search
 
     try {
       const { data: searchData, failedApis: failures } = await searchApi(
@@ -279,7 +308,7 @@ export const App = () => {
               alt="STAC Collection Discovery"
               className="h-10 w-auto"
             />
-            <span className={stack({ gap: "xs" })}>
+            <span className="hidden sm:flex sm:flex-col sm:gap-1">
               <span className="text-lg font-semibold leading-tight">
                 STAC Collection Discovery
               </span>
@@ -288,9 +317,133 @@ export const App = () => {
               </span>
             </span>
           </button>
-          <Button variant="outline" onClick={() => setIsAboutOpen(true)}>
+          <Button
+            variant="outline"
+            onClick={() => setIsAboutOpen(true)}
+            className="hidden sm:inline-flex"
+          >
             About
           </Button>
+          <div className={cn(hstack({ gap: "sm" }), "sm:hidden")}>
+            <Button
+              variant="outline"
+              onClick={() => setIsMobileSearchOpen((prev) => !prev)}
+              className={cn(touchTarget(), "gap-2 px-3")}
+              aria-label={
+                isMobileSearchOpen ? "Hide search panel" : "Show search panel"
+              }
+              aria-expanded={isMobileSearchOpen}
+              aria-controls="mobile-search-panel"
+            >
+              <Search className="h-5 w-5" aria-hidden="true" />
+              Search
+            </Button>
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className={touchTarget({ size: "icon-lg" })}
+                  aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+                >
+                  <Menu className="h-5 w-5" aria-hidden="true" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent
+                side="right"
+                className="flex w-4/5 max-w-xs flex-col p-4"
+                aria-describedby={undefined}
+              >
+                <SheetHeader>
+                  <SheetTitle>STAC Collection Discovery</SheetTitle>
+                </SheetHeader>
+                <nav
+                  className="flex flex-1 flex-col"
+                  aria-label="Mobile navigation"
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAboutOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={cn(
+                      hstack({ gap: "sm" }),
+                      "rounded-md px-3 py-3 text-sm text-left hover:bg-accent hover:text-accent-foreground"
+                    )}
+                  >
+                    <Info className="h-4 w-4" aria-hidden="true" />
+                    About
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsDocOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={cn(
+                      hstack({ gap: "sm" }),
+                      "rounded-md px-3 py-3 text-sm text-left hover:bg-accent hover:text-accent-foreground"
+                    )}
+                  >
+                    <FileText className="h-4 w-4" aria-hidden="true" />
+                    API Documentation
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsApiConfigOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={cn(
+                      hstack({ gap: "sm" }),
+                      "rounded-md px-3 py-3 text-sm text-left hover:bg-accent hover:text-accent-foreground"
+                    )}
+                  >
+                    <Settings className="h-4 w-4" aria-hidden="true" />
+                    API Settings
+                  </button>
+                  <a
+                    href="https://github.com/developmentseed/stac-collection-discovery"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={cn(
+                      hstack({ gap: "sm" }),
+                      "rounded-md px-3 py-3 text-sm hover:bg-accent hover:text-accent-foreground"
+                    )}
+                  >
+                    <img
+                      src={GitHubLogo}
+                      className="size-4 dark:invert"
+                      alt=""
+                      aria-hidden="true"
+                    />
+                    Source Code
+                    <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      toggleColorMode();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={cn(
+                      hstack({ gap: "sm" }),
+                      "rounded-md px-3 py-3 text-sm text-left hover:bg-accent hover:text-accent-foreground"
+                    )}
+                  >
+                    {isDark ? (
+                      <Sun className="h-4 w-4" aria-hidden="true" />
+                    ) : (
+                      <Moon className="h-4 w-4" aria-hidden="true" />
+                    )}
+                    Theme
+                  </button>
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </header>
 
@@ -334,22 +487,33 @@ export const App = () => {
             <AlertDescription>{apiError}</AlertDescription>
           </Alert>
         )}
-        <div className={cn(stack({ gap: "sm" }), "flex-none")}>
-          <React.Suspense fallback={<LoadingSpinner size="sm" />}>
-            <SearchForm
-              onSubmit={handleSearch}
-              apiError={apiError}
-              isLoading={loading}
-              conformanceCapabilities={conformanceCapabilities}
-              conformanceLoading={conformanceLoading}
-              results={results}
-              stacApis={stacApis}
-              selectedProviders={selectedProviders}
-              selectedHosts={selectedHosts}
-              onProvidersChange={setSelectedProviders}
-              onHostsChange={setSelectedHosts}
-            />
-          </React.Suspense>
+        <div
+          id="mobile-search-panel"
+          className={cn(
+            "grid flex-none transition-[grid-template-rows] duration-300 ease-in-out sm:grid-rows-[1fr]",
+            isMobileSearchOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+          )}
+          inert={!isDesktop && !isMobileSearchOpen ? true : undefined}
+        >
+          <div className="min-h-0 overflow-hidden">
+            <div className={cn(stack({ gap: "sm" }), "pb-1")}>
+              <React.Suspense fallback={<LoadingSpinner size="sm" />}>
+                <SearchForm
+                  onSubmit={handleSearch}
+                  apiError={apiError}
+                  isLoading={loading}
+                  conformanceCapabilities={conformanceCapabilities}
+                  conformanceLoading={conformanceLoading}
+                  results={results}
+                  stacApis={stacApis}
+                  selectedProviders={selectedProviders}
+                  selectedHosts={selectedHosts}
+                  onProvidersChange={setSelectedProviders}
+                  onHostsChange={setSelectedHosts}
+                />
+              </React.Suspense>
+            </div>
+          </div>
         </div>
 
         <section
@@ -380,9 +544,9 @@ export const App = () => {
       <footer className="flex-none bg-background border-t">
         <nav
           className={cn(
-            "flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 p-2 sm:p-3",
-            container({ maxWidth: "custom" }),
-            "mx-auto"
+            "flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2",
+            container({ maxWidth: "custom", padding: "none" }),
+            "p-1 sm:p-3 mx-auto"
           )}
           aria-label="Footer navigation"
         >
@@ -391,7 +555,7 @@ export const App = () => {
               onClick={() => setIsDocOpen(true)}
               variant="outline"
               size="sm"
-              className={cn(touchTarget(), "flex-1 sm:flex-initial")}
+              className={cn(touchTarget(), "hidden sm:inline-flex")}
               aria-label="View API documentation"
             >
               API Documentation
@@ -400,7 +564,7 @@ export const App = () => {
               asChild
               variant="outline"
               size="sm"
-              className={cn(touchTarget(), "flex-1 sm:flex-initial")}
+              className={cn(touchTarget(), "hidden sm:inline-flex")}
             >
               <a
                 href="https://github.com/developmentseed/stac-collection-discovery"
@@ -429,7 +593,7 @@ export const App = () => {
               />
             </React.Suspense>
           </div>
-          <div className="flex justify-center sm:justify-end">
+          <div className="hidden sm:flex sm:justify-end">
             <ColorModeSwitcher />
           </div>
         </nav>

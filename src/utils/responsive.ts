@@ -127,7 +127,7 @@ export const dialog = cva("", {
     size: {
       sm: "w-[95vw] max-w-md",
       md: "w-[95vw] max-w-2xl",
-      lg: "w-[95vw] sm:w-[90vw] lg:w-[70vw] xl:w-[60vw] 2xl:max-w-[50vw]",
+      lg: "max-w-lg sm:min-w-[28rem] sm:max-w-xl md:min-w-[36rem] md:max-w-2xl lg:min-w-[42rem] lg:max-w-4xl xl:min-w-[56rem] xl:max-w-5xl",
       full: "w-[95vw] max-w-[95vw] sm:w-[90vw] sm:max-w-[90vw]",
     },
     height: {

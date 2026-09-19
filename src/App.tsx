@@ -550,12 +550,22 @@ export const App = () => {
           )}
           aria-label="Footer navigation"
         >
-          <div className={cn(hstack({ gap: "sm" }), "flex-wrap")}>
+          <div className={cn(hstack({ gap: "sm" }), "flex-wrap w-full")}>
+            <React.Suspense fallback={null}>
+              <ApiConfigPanel
+                variant="compact"
+                stacApis={stacApis}
+                onUpdate={handleUpdateStacApis}
+                isOpen={isApiConfigOpen}
+                onOpenChange={setIsApiConfigOpen}
+                failedApis={failedApis}
+              />
+            </React.Suspense>
             <Button
               onClick={() => setIsDocOpen(true)}
               variant="outline"
               size="sm"
-              className={cn(touchTarget(), "hidden sm:inline-flex")}
+              className={cn(touchTarget(), "hidden sm:inline-flex ml-auto")}
               aria-label="View API documentation"
             >
               API Documentation
@@ -582,16 +592,6 @@ export const App = () => {
                 <span className="sm:inline">Source Code</span>
               </a>
             </Button>
-            <React.Suspense fallback={null}>
-              <ApiConfigPanel
-                variant="compact"
-                stacApis={stacApis}
-                onUpdate={handleUpdateStacApis}
-                isOpen={isApiConfigOpen}
-                onOpenChange={setIsApiConfigOpen}
-                failedApis={failedApis}
-              />
-            </React.Suspense>
           </div>
           <div className="hidden sm:flex sm:justify-end">
             <ColorModeSwitcher />

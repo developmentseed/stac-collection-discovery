@@ -80,7 +80,6 @@ describe("src/App.tsx", () => {
   });
 
   it("renders the search surface after startup requests succeed", async () => {
-    const user = userEvent.setup();
     server.use(
       http.get("http://localhost:8000/api", () =>
         HttpResponse.json({ info: { summary: "Docs summary" } })

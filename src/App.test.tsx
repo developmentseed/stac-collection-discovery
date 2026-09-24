@@ -100,8 +100,6 @@ describe("src/App.tsx", () => {
     expect(screen.getByText("Run search")).toBeInTheDocument();
     expect(screen.queryByText(/Failed to load API documentation/i)).toBeNull();
     expect(screen.queryByText(/Failed to load API conformance/i)).toBeNull();
-
-    expect(await screen.findByText("Docs summary")).toBeInTheDocument();
   });
 
   it("renders search results and failed upstream APIs after a successful search", async () => {

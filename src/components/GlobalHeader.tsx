@@ -13,7 +13,6 @@ import {
 import {
   ExternalLink,
   FileText,
-  Info,
   Menu,
   Moon,
   Search,
@@ -25,7 +24,7 @@ import Logo from "../assets/logo-text.svg";
 import { hstack, touchTarget, container } from "@/utils/responsive";
 
 interface GlobalHeaderProps {
-  setIsAboutOpen: (open: boolean) => void;
+  stacApis: string[];
   isMobileSearchOpen: boolean;
   setIsMobileSearchOpen: (open: boolean) => void;
   setIsDocOpen: (open: boolean) => void;
@@ -33,14 +32,12 @@ interface GlobalHeaderProps {
 }
 
 const GlobalHeader = ({
-  setIsAboutOpen,
+  stacApis,
   isMobileSearchOpen,
   setIsMobileSearchOpen,
   setIsDocOpen,
   setIsApiConfigOpen,
 }: GlobalHeaderProps) => {
-  const [stacApis] = useState<string[]>([]);
-
   // Mobile hamburger menu state - holds nav items relocated from the footer
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isDark = useDarkMode();
@@ -48,9 +45,9 @@ const GlobalHeader = ({
     <header className="flex-none border-b bg-background">
       <div
         className={cn(
-          "flex items-center justify-between gap-4 p-4 lg:p-6",
+          "flex items-center justify-between gap-4",
           container({ maxWidth: "custom" }),
-          "mx-auto"
+          "mx-auto py-2 sm:py-3"
         )}
       >
         <button
@@ -75,13 +72,6 @@ const GlobalHeader = ({
             </span>
           </span>
         </button>
-        <Button
-          variant="outline"
-          onClick={() => setIsAboutOpen(true)}
-          className="hidden sm:inline-flex"
-        >
-          About
-        </Button>
         <div className={cn(hstack({ gap: "sm" }), "sm:hidden")}>
           <Button
             variant="outline"
@@ -120,20 +110,6 @@ const GlobalHeader = ({
                 className="flex flex-1 flex-col"
                 aria-label="Mobile navigation"
               >
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsAboutOpen(true);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={cn(
-                    hstack({ gap: "sm" }),
-                    "rounded-md px-3 py-3 text-sm text-left hover:bg-accent hover:text-accent-foreground"
-                  )}
-                >
-                  <Info className="h-4 w-4" aria-hidden="true" />
-                  About
-                </button>
                 <button
                   type="button"
                   onClick={() => {

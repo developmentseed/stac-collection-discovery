@@ -1,13 +1,6 @@
 import * as React from "react";
-import ReactMarkdown from "react-markdown";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { AlertCircle } from "lucide-react";
 import GitHubLogo from "./assets/github-mark.svg";
 import { cn } from "@/utils/utils";
@@ -57,9 +50,6 @@ export const App = () => {
 
   // API config modal state - hoisted to prevent loss when stacApis changes
   const [isApiConfigOpen, setIsApiConfigOpen] = React.useState(false);
-
-  // About modal state
-  const [isAboutOpen, setIsAboutOpen] = React.useState(false);
 
   // Mobile search accordion state - open by default so first-time visitors
   // see the search tools/filters; collapses once a search has been run
@@ -266,7 +256,7 @@ export const App = () => {
         Skip to main content
       </a>
       <GlobalHeader
-        setIsAboutOpen={setIsAboutOpen}
+        stacApis={stacApis}
         isMobileSearchOpen={isMobileSearchOpen}
         setIsMobileSearchOpen={setIsMobileSearchOpen}
         setIsDocOpen={setIsDocOpen}
@@ -424,24 +414,6 @@ export const App = () => {
           </div>
         </nav>
       </footer>
-
-      {/* About modal */}
-      <Dialog open={isAboutOpen} onOpenChange={setIsAboutOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>About</DialogTitle>
-          </DialogHeader>
-          {docsLoading ? (
-            <LoadingSpinner size="sm" text="Loading API documentation..." />
-          ) : (
-            apiDocs && (
-              <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground">
-                <ReactMarkdown>{apiDocs.info.summary}</ReactMarkdown>
-              </div>
-            )
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* API Documentation Modal */}
       <React.Suspense fallback={null}>

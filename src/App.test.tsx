@@ -102,7 +102,6 @@ describe("src/App.tsx", () => {
     expect(screen.queryByText(/Failed to load API documentation/i)).toBeNull();
     expect(screen.queryByText(/Failed to load API conformance/i)).toBeNull();
 
-    await user.click(screen.getByRole("button", { name: "About" }));
     expect(await screen.findByText("Docs summary")).toBeInTheDocument();
   });
 

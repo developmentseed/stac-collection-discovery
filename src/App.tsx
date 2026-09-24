@@ -38,7 +38,7 @@ export const App = () => {
   const [hasSearched, setHasSearched] = React.useState<boolean>(false);
   const hasRunInitialSearch = React.useRef(false);
 
-  const [docsLoading, setDocsLoading] = React.useState(true);
+  const [, setDocsLoading] = React.useState(true);
   const [apiDocs, setApiDocs] = React.useState<any | null>(null);
   const [docsError, setDocsError] = React.useState<string | null>(null);
 

@@ -2,9 +2,13 @@ import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { Badge } from "./ui/badge";
 import { DatePicker } from "./ui/date-picker";
-import { cn } from "../utils/utils";
-import { stack, touchTarget, layout } from "../utils/responsive";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import ResultsFilters from "./ResultsFilters";
+import { cn, getHostname } from "../utils/utils";
+import { hstack, touchTarget } from "../utils/responsive";
+import { Calendar, Scan, Search, X } from "lucide-react";
 
 const MapModal = React.lazy(() => import("./MapModal"));
 
@@ -23,6 +27,12 @@ interface Props {
     hasFreeText: boolean;
   } | null;
   conformanceLoading?: boolean;
+  results?: Array<Record<string, any>>;
+  stacApis?: string[];
+  selectedProviders?: string[];
+  selectedHosts?: string[];
+  onProvidersChange?: (providers: string[]) => void;
+  onHostsChange?: (hosts: string[]) => void;
 }
 
 // Parse datetime interval from URL parameter
@@ -52,12 +62,32 @@ const getInitialFormData = () => {
   };
 };
 
+const getUniqueProviders = (results: Array<Record<string, any>>): string[] => {
+  const names = new Set<string>();
+  results.forEach((collection) => {
+    if (Array.isArray(collection.providers)) {
+      collection.providers.forEach((provider: any) => {
+        if (provider?.name) names.add(provider.name);
+      });
+    }
+  });
+  return Array.from(names).sort();
+};
+
 const SearchForm: React.FC<Props> = ({
   onSubmit,
   isLoading,
   conformanceCapabilities,
+  results = [],
+  stacApis = [],
+  selectedProviders = [],
+  selectedHosts = [],
+  onProvidersChange,
+  onHostsChange,
 }) => {
   const [isMapOpen, setIsMapOpen] = useState(false);
+  const [isBboxOpen, setIsBboxOpen] = useState(false);
+  const [isDateOpen, setIsDateOpen] = useState(false);
 
   const [formData, setFormData] = useState<
     Omit<FormData, "datetime"> & {
@@ -128,21 +158,12 @@ const SearchForm: React.FC<Props> = ({
     return `${dateFormatter(start)}/${dateFormatter(end, false)}`;
   };
 
-  const handleSubmit = (event?: React.FormEvent) => {
-    event?.preventDefault();
-
-    if (!validateBbox(formData.bbox)) {
-      return;
-    }
-
-    const datetime = formatDateInterval(
-      formData.startDatetime,
-      formData.endDatetime
-    );
+  const submitWith = (data: typeof formData) => {
+    const datetime = formatDateInterval(data.startDatetime, data.endDatetime);
     const submitData = {
-      bbox: formData.bbox,
+      bbox: data.bbox,
       datetime,
-      q: formData.q,
+      q: data.q,
     };
 
     // Update URL with search parameters
@@ -157,6 +178,17 @@ const SearchForm: React.FC<Props> = ({
     onSubmit(submitData);
   };
 
+  const handleSubmit = (event?: React.FormEvent) => {
+    event?.preventDefault();
+
+    if (!validateBbox(formData.bbox)) {
+      setIsBboxOpen(true);
+      return;
+    }
+
+    submitWith(formData);
+  };
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLFormElement>) => {
     if (event.key === "Enter") {
       handleSubmit();
@@ -168,114 +200,271 @@ const SearchForm: React.FC<Props> = ({
     setIsMapOpen(false);
   };
 
+  const clearAll = () => {
+    const cleared = {
+      bbox: "",
+      startDatetime: null,
+      endDatetime: null,
+      q: formData.q,
+    };
+    setFormData(cleared);
+    setBboxError("");
+    onProvidersChange?.([]);
+    onHostsChange?.([]);
+    submitWith(cleared);
+  };
+
+  const clearKeyword = () => {
+    setFormData({ ...formData, q: "" });
+  };
+
+  const removeBbox = () => {
+    const next = { ...formData, bbox: "" };
+    setFormData(next);
+    setBboxError("");
+    submitWith(next);
+  };
+
+  const removeDateRange = () => {
+    const next = { ...formData, startDatetime: null, endDatetime: null };
+    setFormData(next);
+    submitWith(next);
+  };
+
+  const removeProvider = (provider: string) => {
+    onProvidersChange?.(selectedProviders.filter((p) => p !== provider));
+  };
+
+  const removeHost = (host: string) => {
+    onHostsChange?.(selectedHosts.filter((h) => h !== host));
+  };
+
   const today = new Date();
   const isTextSearchDisabled = conformanceCapabilities
     ? !conformanceCapabilities.hasFreeText
     : false;
 
+  const hasDateRange = !!(formData.startDatetime || formData.endDatetime);
+  const providerOptions = getUniqueProviders(results);
+  const hostOptions = stacApis;
+
+  const formatDateShort = (date: Date | null) =>
+    date ? date.toISOString().split("T")[0] : "..";
+
+  const hasActiveFilters =
+    !!formData.bbox ||
+    hasDateRange ||
+    selectedProviders.length > 0 ||
+    selectedHosts.length > 0;
+
   return (
     <form
       onKeyDown={handleKeyDown}
       onSubmit={handleSubmit}
-      className={stack({ gap: "md" })}
+      className="flex flex-col gap-3"
       aria-label="Collection search form"
     >
-      <div className={stack({ gap: "sm" })}>
-        <Label htmlFor="q" className="font-semibold">
-          text search
-        </Label>
-        <Input
-          id="q"
-          name="q"
-          value={formData.q}
-          onChange={handleChange}
-          placeholder={
-            isTextSearchDisabled ? "Text search not available" : "Enter text"
-          }
-          disabled={isTextSearchDisabled}
-          aria-describedby={isTextSearchDisabled ? "q-help" : undefined}
-        />
-        {isTextSearchDisabled && (
-          <p id="q-help" className="text-sm text-muted-foreground">
-            Text search is disabled - no upstream APIs support free-text search
-          </p>
-        )}
-      </div>
-
-      <div className={stack({ gap: "sm" })}>
-        <Label htmlFor="bbox" className="font-semibold">
-          bounding box{" "}
-          <span className="font-normal text-muted-foreground">
-            (xmin, ymin, xmax, ymax; EPSG:4326)
-          </span>
-        </Label>
-        <Input
-          id="bbox"
-          name="bbox"
-          value={formData.bbox}
-          onChange={handleChange}
-          placeholder="Enter bounding box"
-          className={cn(bboxError && "border-destructive")}
-          aria-invalid={!!bboxError}
-          aria-describedby={bboxError ? "bbox-error" : "bbox-help"}
-        />
-        <span id="bbox-help" className="sr-only">
-          Format: xmin, ymin, xmax, ymax in EPSG:4326
-        </span>
-        {bboxError && (
-          <p id="bbox-error" className="text-sm text-destructive" role="alert">
-            {bboxError}
-          </p>
-        )}
-        <Button
-          type="button"
-          onClick={() => setIsMapOpen(true)}
-          variant="outline"
-          size="sm"
-          className={touchTarget()}
-          aria-label="Open map to draw bounding box"
-        >
-          Draw on Map
-        </Button>
-      </div>
-
-      <fieldset className={stack({ gap: "sm" })}>
-        <legend className="font-semibold">temporal range</legend>
-        <div className={cn(layout.flexColSm, "gap-4")}>
-          <div className="flex-1">
-            <Label htmlFor="start-date" className="sr-only">
-              Start date
-            </Label>
-            <DatePicker
-              date={formData.startDatetime}
-              onSelect={(date) =>
-                handleDateChange(date || null, "startDatetime")
-              }
-              maxDate={today}
-              placeholder="start date"
-            />
-          </div>
-          <div className="flex-1">
-            <Label htmlFor="end-date" className="sr-only">
-              End date
-            </Label>
-            <DatePicker
-              date={formData.endDatetime}
-              onSelect={(date) => handleDateChange(date || null, "endDatetime")}
-              maxDate={today}
-              placeholder="end date"
-            />
-          </div>
+      <div className="flex flex-wrap items-start gap-2">
+        <div className="relative md:flex-1 sm:min-w-[200px] basis-full">
+          <Label htmlFor="q" className="sr-only">
+            Keywords
+          </Label>
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            aria-hidden="true"
+          />
+          <Input
+            id="q"
+            name="q"
+            type="text"
+            value={formData.q}
+            onChange={handleChange}
+            placeholder={
+              isTextSearchDisabled
+                ? "Text search not available"
+                : "Enter terms for search on collection titles, descriptions, and keywords"
+            }
+            disabled={isTextSearchDisabled}
+            className={cn("pl-9 text-xs md:text-sm", formData.q && "pr-9")}
+            aria-describedby={isTextSearchDisabled ? "q-help" : undefined}
+          />
+          {!!formData.q && !isTextSearchDisabled && (
+            <button
+              type="button"
+              onClick={clearKeyword}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label="Clear keyword search"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </button>
+          )}
+          {isTextSearchDisabled && (
+            <p id="q-help" className="sr-only">
+              Text search is disabled - no upstream APIs support free-text
+              search
+            </p>
+          )}
         </div>
-      </fieldset>
 
-      <div className="flex justify-end">
+        <Popover open={isBboxOpen} onOpenChange={setIsBboxOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              className={cn(
+                "relative h-8 gap-1 px-2 text-xs has-[>svg]:px-2",
+                "sm:h-10 sm:gap-2 sm:px-4 sm:text-sm sm:has-[>svg]:px-3"
+              )}
+            >
+              <Scan className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
+              Bounding Box
+              {!!formData.bbox && (
+                <span
+                  className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-blue-500 ring-2 ring-background"
+                  aria-hidden="true"
+                />
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-80 max-w-[calc(100vw-2rem)]"
+            align="start"
+            collisionPadding={16}
+          >
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="bbox" className="font-semibold text-sm">
+                bounding box{" "}
+                <span className="font-normal text-xs text-muted-foreground">
+                  (xmin, ymin, xmax, ymax; EPSG:4326)
+                </span>
+              </Label>
+              <Input
+                id="bbox"
+                name="bbox"
+                value={formData.bbox}
+                onChange={handleChange}
+                placeholder="Enter bounding box"
+                className={cn(bboxError && "border-destructive")}
+                aria-invalid={!!bboxError}
+                aria-describedby={bboxError ? "bbox-error" : "bbox-help"}
+              />
+              <span id="bbox-help" className="sr-only">
+                Format: xmin, ymin, xmax, ymax in EPSG:4326
+              </span>
+              {bboxError && (
+                <p
+                  id="bbox-error"
+                  className="text-sm text-destructive"
+                  role="alert"
+                >
+                  {bboxError}
+                </p>
+              )}
+              <div className="flex flex-col gap-2">
+                <Button
+                  type="button"
+                  onClick={removeBbox}
+                  disabled={!formData.bbox}
+                  variant="ghost"
+                  size="sm"
+                  aria-label="Clear bounding box filter"
+                >
+                  Clear
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => setIsMapOpen(true)}
+                  variant="outline"
+                  size="sm"
+                  className={touchTarget()}
+                  aria-label="Open map to draw bounding box"
+                >
+                  Draw on Map
+                </Button>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        <Popover open={isDateOpen} onOpenChange={setIsDateOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              className={cn(
+                "relative h-8 gap-1 px-2 text-xs has-[>svg]:px-2",
+                "sm:h-10 sm:gap-2 sm:px-4 sm:text-sm sm:has-[>svg]:px-3"
+              )}
+            >
+              <Calendar
+                className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                aria-hidden="true"
+              />
+              Date Range
+              {hasDateRange && (
+                <span
+                  className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-blue-500 ring-2 ring-background"
+                  aria-hidden="true"
+                />
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-auto max-w-[calc(100vw-2rem)]"
+            align="start"
+            collisionPadding={16}
+          >
+            <fieldset className="flex flex-col gap-2">
+              <legend className="font-semibold text-sm mb-1">
+                temporal range
+              </legend>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex-1">
+                  <Label htmlFor="start-date" className="sr-only">
+                    Start date
+                  </Label>
+                  <DatePicker
+                    date={formData.startDatetime}
+                    onSelect={(date) =>
+                      handleDateChange(date || null, "startDatetime")
+                    }
+                    maxDate={today}
+                    placeholder="start date"
+                  />
+                </div>
+                <div className="flex-1">
+                  <Label htmlFor="end-date" className="sr-only">
+                    End date
+                  </Label>
+                  <DatePicker
+                    date={formData.endDatetime}
+                    onSelect={(date) =>
+                      handleDateChange(date || null, "endDatetime")
+                    }
+                    maxDate={today}
+                    placeholder="end date"
+                  />
+                </div>
+              </div>
+              <Button
+                type="button"
+                onClick={removeDateRange}
+                disabled={!hasDateRange}
+                variant="ghost"
+                size="sm"
+                className={cn("self-start")}
+                aria-label="Clear date range filter"
+              >
+                Clear
+              </Button>
+            </fieldset>
+          </PopoverContent>
+        </Popover>
+
         <Button
           type="submit"
           disabled={isLoading}
-          variant="outline"
-          size="sm"
-          className={cn(touchTarget(), "min-w-[100px]")}
+          className="h-8 min-w-0 px-3 text-xs sm:h-10 sm:min-w-[100px] sm:px-4 sm:text-sm"
           aria-label={
             isLoading ? "Searching collections" : "Search for collections"
           }
@@ -283,6 +472,76 @@ const SearchForm: React.FC<Props> = ({
           {isLoading ? "Searching..." : "Search"}
         </Button>
       </div>
+
+      <ResultsFilters
+        providerOptions={providerOptions}
+        hostOptions={hostOptions}
+        selectedProviders={selectedProviders}
+        selectedHosts={selectedHosts}
+        onProvidersChange={onProvidersChange}
+        onHostsChange={onHostsChange}
+      />
+
+      {hasActiveFilters && (
+        <div className={cn(hstack({ gap: "sm" }), "flex-wrap")}>
+          {selectedHosts.map((host) => (
+            <Badge key={host} variant="secondary" className="gap-1">
+              {getHostname(host)}
+              <button
+                type="button"
+                onClick={() => removeHost(host)}
+                aria-label={`Remove host filter ${getHostname(host)}`}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          ))}
+          {selectedProviders.map((provider) => (
+            <Badge key={provider} variant="secondary" className="gap-1">
+              {provider}
+              <button
+                type="button"
+                onClick={() => removeProvider(provider)}
+                aria-label={`Remove provider filter ${provider}`}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          ))}
+          {!!formData.bbox && (
+            <Badge variant="secondary" className="gap-1">
+              {formData.bbox}
+              <button
+                type="button"
+                onClick={removeBbox}
+                aria-label="Remove bounding box filter"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          )}
+          {hasDateRange && (
+            <Badge variant="secondary" className="gap-1">
+              {formatDateShort(formData.startDatetime)} -{" "}
+              {formatDateShort(formData.endDatetime)}
+              <button
+                type="button"
+                onClick={removeDateRange}
+                aria-label="Remove date range filter"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          )}
+          <button
+            type="button"
+            onClick={clearAll}
+            className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+          >
+            Clear all
+          </button>
+        </div>
+      )}
 
       <React.Suspense fallback={null}>
         <MapModal

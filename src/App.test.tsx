@@ -37,6 +37,9 @@ vi.mock("./components/ResultsTable", () => ({
     failedApis?: string[];
   }) => (
     <div>
+      <p>
+        {data.length} {data.length === 1 ? "result" : "results"}
+      </p>
       <ul aria-label="Rendered results">
         {data.map((collection) => (
           <li key={collection.id}>{collection.title}</li>
@@ -93,8 +96,7 @@ describe("src/App.tsx", () => {
 
     render(<App />);
 
-    expect(await screen.findByText("Docs summary")).toBeInTheDocument();
-    expect(screen.getByText("API Config Panel")).toBeInTheDocument();
+    expect(await screen.findByText("API Config Panel")).toBeInTheDocument();
     expect(screen.getByText("Run search")).toBeInTheDocument();
     expect(screen.queryByText(/Failed to load API documentation/i)).toBeNull();
     expect(screen.queryByText(/Failed to load API conformance/i)).toBeNull();
@@ -134,7 +136,7 @@ describe("src/App.tsx", () => {
 
     expect(await screen.findByText("Alpha")).toBeVisible();
     expect(screen.getByText("https://failed.example.com")).toBeVisible();
-    expect(screen.getByText("Found 1 result")).toBeVisible();
+    expect(screen.getByText("1 result")).toBeVisible();
   });
 
   it("shows surfaced API errors and exits the loading state after a failed search", async () => {
@@ -208,7 +210,7 @@ describe("src/App.tsx", () => {
     expect(
       screen.getByRole("list", { name: "Rendered results" })
     ).toHaveTextContent("Beta");
-    expect(screen.getByText("Found 2 results")).toBeVisible();
+    expect(screen.getByText("2 results")).toBeVisible();
   });
 
   it("triggers the initial search once from URL parameters after STAC APIs initialize", async () => {

@@ -45,19 +45,24 @@ vi.mock("./MapModal", () => ({
 }));
 
 describe("src/components/SearchForm.tsx", () => {
-  it("initializes fields from URL parameters", () => {
+  it("initializes fields from URL parameters", async () => {
     window.history.pushState(
       {},
       "",
       "/?q=forest&bbox=1,2,3,4&datetime=2024-01-02T00:00:00Z/2024-01-05T23:59:59Z"
     );
+    const user = userEvent.setup();
 
     render(<SearchForm onSubmit={vi.fn()} />);
 
-    expect(screen.getByLabelText(/text search/i)).toHaveValue("forest");
+    expect(screen.getByLabelText(/keywords/i)).toHaveValue("forest");
+
+    await user.click(screen.getByRole("button", { name: "Bounding Box" }));
     expect(screen.getByPlaceholderText("Enter bounding box")).toHaveValue(
       "1,2,3,4"
     );
+
+    await user.click(screen.getByRole("button", { name: "Date Range" }));
     expect(screen.getByRole("button", { name: "2024-01-02" })).toBeVisible();
     expect(screen.getByRole("button", { name: "2024-01-05" })).toBeVisible();
   });
@@ -68,6 +73,7 @@ describe("src/components/SearchForm.tsx", () => {
 
     render(<SearchForm onSubmit={onSubmit} />);
 
+    await user.click(screen.getByRole("button", { name: "Bounding Box" }));
     await user.type(screen.getByPlaceholderText("Enter bounding box"), "1,2,3");
     await user.click(
       screen.getByRole("button", { name: "Search for collections" })
@@ -90,12 +96,7 @@ describe("src/components/SearchForm.tsx", () => {
       />
     );
 
-    expect(screen.getByLabelText(/text search/i)).toBeDisabled();
-    expect(
-      screen.getByText(
-        "Text search is disabled - no upstream APIs support free-text search"
-      )
-    ).toBeVisible();
+    expect(screen.getByLabelText(/keywords/i)).toBeDisabled();
   });
 
   it("submits the expected datetime interval string", async () => {
@@ -104,13 +105,18 @@ describe("src/components/SearchForm.tsx", () => {
 
     render(<SearchForm onSubmit={onSubmit} />);
 
-    await user.type(screen.getByLabelText(/text search/i), "forest");
+    await user.type(screen.getByLabelText(/keywords/i), "forest");
+
+    await user.click(screen.getByRole("button", { name: "Bounding Box" }));
     await user.type(
       screen.getByPlaceholderText("Enter bounding box"),
       "1,2,3,4"
     );
+
+    await user.click(screen.getByRole("button", { name: "Date Range" }));
     await user.click(screen.getByRole("button", { name: "start date" }));
     await user.click(screen.getByRole("button", { name: "end date" }));
+
     await user.click(
       screen.getByRole("button", { name: "Search for collections" })
     );

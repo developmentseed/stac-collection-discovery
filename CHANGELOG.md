@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - Nothing yet.
 
+## [2.3.0](https://github.com/developmentseed/stac-collection-discovery/compare/v2.2.1...v2.3.0) (2026-09-25)
+
+
+### Features
+
+* update UI layout ([#254](https://github.com/developmentseed/stac-collection-discovery/issues/254)) ([91fab71](https://github.com/developmentseed/stac-collection-discovery/commit/91fab71ede1a5baa500f4c7dc1913c8517adc771))
+
 ## [2.2.1](https://github.com/developmentseed/stac-collection-discovery/compare/2.2.0...v2.2.1) (2026-06-11)
 
 
